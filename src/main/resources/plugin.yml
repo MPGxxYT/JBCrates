@@ -1,0 +1,6 @@
+name: JBCrates
+version: '${project.version}'
+main: me.mortaldev.jbcrates.Main
+api-version: '1.19'
+authors: [Mortality]
+description: Crates plugin for JailBreak on PrismForge
