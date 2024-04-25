@@ -1,2 +1,54 @@
-package me.mortaldev.jbcrates.modules.crate;public class CrateCRUD {
+package me.mortaldev.jbcrates.modules.crate;
+
+import me.mortaldev.jbcrates.Main;
+import me.mortaldev.jbcrates.utils.GSON;
+import org.bukkit.Bukkit;
+
+import java.io.File;
+
+public class CrateCRUD {
+
+    /**
+     * Saves a crate object to a file in JSON format.
+     *
+     * @param crateObject the crate object to be saved
+     */
+    public void saveCrate(Crate crateObject){
+        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateObject.id + ".json");
+        GSON.saveJsonObject(filePath, crateObject);
+        Bukkit.getLogger().info("Crate '" + crateObject.getId() + "' has been saved.");
+    }
+
+    /**
+     * Retrieves a Crate object based on the given crateID.
+     *
+     * @param crateID the ID of the crate to retrieve
+     * @return the Crate object with the specified crateID
+     * @throws IllegalArgumentException if the crate with the specified crateID does not exist
+     */
+    public Crate getCrate(String crateID){
+        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateID + ".json");
+        if (filePath.exists()) {
+            return GSON.getJsonObject(filePath, Crate.class);
+        } else {
+            throw new IllegalArgumentException("Could not get crate: " +crateID+" does not exist.");
+        }
+    }
+
+    /**
+     * Deletes a crate file based on the provided crate ID.
+     *
+     * @param crateID the ID of the crate to be deleted
+     * @throws IllegalArgumentException if the crate with the specified crateID does not exist
+     */
+    public void deleteCrate(String crateID){
+        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateID + ".json");
+        if (filePath.exists()) {
+            filePath.delete();
+            Bukkit.getLogger().info("Crate '" + crateID + "' has been deleted.");
+        } else {
+            throw new IllegalArgumentException("Could not delete crate: " +crateID+" does not exist.");
+        }
+    }
+
 }
