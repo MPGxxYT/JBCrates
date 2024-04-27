@@ -8,15 +8,23 @@ import java.io.File;
 
 public class CrateCRUD {
 
+    static String mainFilePath = Main.getInstance().getDataFolder() + "/crates/";
+
+    public static String getMainFilePath() {
+        return mainFilePath;
+    }
+
     /**
-     * Saves a crate object to a file in JSON format.
+     * Saves a Crate object to a file in JSON format and returns the saved object.
      *
-     * @param crateObject the crate object to be saved
+     * @param crateObject the Crate object to be saved
+     * @return the saved Crate object
      */
-    public void saveCrate(Crate crateObject){
-        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateObject.id + ".json");
+    public static Crate saveCrate(Crate crateObject) {
+        File filePath = new File(mainFilePath + crateObject.id + ".json");
         GSON.saveJsonObject(filePath, crateObject);
         Bukkit.getLogger().info("Crate '" + crateObject.getId() + "' has been saved.");
+        return crateObject;
     }
 
     /**
@@ -26,12 +34,12 @@ public class CrateCRUD {
      * @return the Crate object with the specified crateID
      * @throws IllegalArgumentException if the crate with the specified crateID does not exist
      */
-    public Crate getCrate(String crateID){
-        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateID + ".json");
+    public static Crate getCrate(String crateID) {
+        File filePath = new File(mainFilePath + crateID + ".json");
         if (filePath.exists()) {
             return GSON.getJsonObject(filePath, Crate.class);
         } else {
-            throw new IllegalArgumentException("Could not get crate: " +crateID+" does not exist.");
+            throw new IllegalArgumentException("Could not get crate: '" + crateID + "' does not exist.");
         }
     }
 
@@ -41,14 +49,13 @@ public class CrateCRUD {
      * @param crateID the ID of the crate to be deleted
      * @throws IllegalArgumentException if the crate with the specified crateID does not exist
      */
-    public void deleteCrate(String crateID){
-        File filePath = new File(Main.getInstance().getDataFolder() + "/crates/" + crateID + ".json");
+    public static void deleteCrate(String crateID) {
+        File filePath = new File(mainFilePath + crateID + ".json");
         if (filePath.exists()) {
             filePath.delete();
             Bukkit.getLogger().info("Crate '" + crateID + "' has been deleted.");
         } else {
-            throw new IllegalArgumentException("Could not delete crate: " +crateID+" does not exist.");
+            throw new IllegalArgumentException("Could not delete crate: '" + crateID + "' does not exist.");
         }
     }
-
 }

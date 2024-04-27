@@ -1,7 +1,5 @@
 package me.mortaldev.jbcrates.modules.crate;
 
-import me.mortaldev.jbcrates.modules.animation.DefaultAnimation;
-import me.mortaldev.jbcrates.modules.animation.IAnimation;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,11 +11,12 @@ public class Crate {
     String displayName;
     String description = "This is the default description.";
     Map<ItemStack, Float> rewardsMap = new HashMap<>();
-    IAnimation crateAnimation = new DefaultAnimation();
+    //IAnimation crateAnimation = new DefaultAnimation();
 
-    public Crate(String id, String displayName) {
+    public Crate(String displayName) {
         this.displayName = displayName;
         displayName = TextUtil.removeDecoration(displayName);
+        displayName = TextUtil.removeColors(displayName);
         this.id = displayName.replaceAll(" ", "_").toLowerCase();
     }
 
@@ -36,9 +35,9 @@ public class Crate {
         return rewardsMap;
     }
 
-    public IAnimation getCrateAnimation() {
-        return crateAnimation;
-    }
+//    public IAnimation getCrateAnimation() {
+//        return crateAnimation;
+//    }
 
     public void setId(String id) {
         this.id = id;
@@ -55,7 +54,7 @@ public class Crate {
         this.rewardsMap = rewardsMap;
     }
 
-    public void setCrateAnimation(IAnimation crateAnimation) {
-        this.crateAnimation = crateAnimation;
-    }
+//    public void setCrateAnimation(IAnimation crateAnimation) {
+//        this.crateAnimation = crateAnimation;
+//    }
 }

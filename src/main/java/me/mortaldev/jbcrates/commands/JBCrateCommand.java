@@ -1,5 +1,6 @@
 package me.mortaldev.jbcrates.commands;
 
+import me.mortaldev.jbcrates.menus.InitialCratesMenu;
 import me.mortaldev.jbcrates.utils.CommandHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -14,8 +15,7 @@ public class JBCrateCommand {
             @Override
             public boolean onCommand(@NotNull CommandSender sender, @NotNull String[] args) {
                 Player player = (Player) sender;
-
-
+                player.openInventory(new InitialCratesMenu().createInventory(player));
                 return true;
             }
 

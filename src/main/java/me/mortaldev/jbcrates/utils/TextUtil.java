@@ -198,6 +198,15 @@ public class TextUtil {
         return editString.toString();
     }
 
+    public static String removeColors(String string){
+        StringBuilder editString = new StringBuilder(string);
+        for (String key : Colors.getKeys()) {
+            key = "&" + key;
+            editString.replace(0, editString.length(), editString.toString().replace(key, ""));
+        }
+        return editString.toString();
+    }
+
     public enum Types {
         // CLICK ACTIONS
         CHANGE_PAGE("pge:", "<click:change_page:'#arg#'>#input#</click>"),
@@ -312,8 +321,8 @@ public class TextUtil {
 
         public static String[] getKeys() {
             List<String> keys = new ArrayList<>();
-            for (Types types : Types.values()) {
-                keys.add(types.getKey());
+            for (Decorations decorations : Decorations.values()) {
+                keys.add(decorations.getKey());
             }
             return keys.toArray(new String[0]);
         }
@@ -357,8 +366,8 @@ public class TextUtil {
 
         public static String[] getKeys() {
             List<String> keys = new ArrayList<>();
-            for (Types types : Types.values()) {
-                keys.add(types.getKey());
+            for (Colors colors : Colors.values()) {
+                keys.add(colors.getKey());
             }
             return keys.toArray(new String[0]);
         }
