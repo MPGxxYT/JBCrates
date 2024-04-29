@@ -10,8 +10,8 @@ import java.util.List;
 
 public class MenuItem {
 
-    ItemStack itemStack;
-    Integer slot;
+    private ItemStack itemStack;
+    private Integer slot;
 
     public ItemStack getItemStack() {
         return itemStack;
@@ -68,17 +68,27 @@ public class MenuItem {
         }
 
         public Builder itemStack(ItemStack itemStack){
-            this.itemStack = itemStack;
+            this.itemStack = itemStack.clone();
             return this;
         }
 
         public Builder lore(List<Component> lore){
-            this.itemStack.lore(lore);
+            ItemStack cloneItemStack = itemStack.clone();
+            cloneItemStack.editMeta(itemMeta -> itemMeta.lore(lore));
+
+            this.itemStack = cloneItemStack;
             return this;
         }
 
         public Builder addLore(String lore){
             return addLore(TextUtil.format(lore));
+        }
+
+        public Builder addLore(Iterable<Component> components){
+            for (Component component : components) {
+                addLore(component);
+            }
+            return this;
         }
 
         public Builder addLore(Component lore){

@@ -27,6 +27,9 @@ public class InitialCratesMenu extends Menu {
             return;
         }
         e.setCancelled(true);
+        if (e.getCurrentItem() == null) {
+            return;
+        }
         if (isClickedMenuItem(e.getSlot(), e.getCurrentItem(), CHEST_MENU_ITEM)){
             player.openInventory(new ViewCratesMenu().createInventory(player));
         }

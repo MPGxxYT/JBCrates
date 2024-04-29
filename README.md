@@ -8,22 +8,25 @@ The plugin that will revolutionize crates. *totally*. Anyways, this plugin will 
 ## To-Do
 I will track my progress here and try to think of every possible task.
 - [ ] Create GUIs
-  - [X] Inital
-  - [ ] View Crates 
-    - [ ] Page & Expanding Size Function
-    - [ ] Add Crate Function
+  - [X] Initial GUI
+  - [X] View Crates 
+    - [X] GUI Layout
+    - [X] Page & Expanding Size Function
+    - [X] Add Crate Function
+      - [X] Anvil GUI Enter Name
     - [ ] Search Function
         - [ ] Anvil GUI Enter Text
-  - [ ] Add Crate
-    - [ ] Anvil GUI Enter Name
   - [ ] Manage Crate
-    - [ ] Rename Function
-    - [ ] Description Function
+    - [X] GUI Layout
+    - [X] Rename Function
+    - [X] Description Function
     - [ ] Choose Animation Function
     - [ ] Manage Items
         - [ ] Add Items Function
         - [ ] Delete Items Function
-    - [ ] Delete Crate Function
-        - [ ] Confirm Delete
+    - [X] Delete Crate Function
+        - [X] Confirm Delete
 - [ ] Create Animation System
   - [ ] Add Default Animation
+- [ ] Clean Up & Refactor
+- [ ] Fully Test Plugin

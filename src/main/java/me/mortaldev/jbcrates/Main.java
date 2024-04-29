@@ -13,7 +13,12 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        //getServer().getPluginManager().registerEvents();
+
+        // DATA FOLDER
+
+        if (!getDataFolder().exists()){
+            getDataFolder().mkdir();
+        }
 
         new JBCrateCommand();
         new LoreCommand();

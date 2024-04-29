@@ -1,30 +1,37 @@
 package me.mortaldev.jbcrates.modules.crate;
 
-import me.mortaldev.jbcrates.utils.TextUtil;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Crate {
     String id;
     String displayName;
-    String description = "This is the default description.";
-    Map<ItemStack, Float> rewardsMap = new HashMap<>();
-    //IAnimation crateAnimation = new DefaultAnimation();
+    String description = "&7This is the default description.";
+    Map<String, Float> rewardsMap = new HashMap<>();
 
     public Crate(String displayName) {
         this.displayName = displayName;
-        displayName = TextUtil.removeDecoration(displayName);
-        displayName = TextUtil.removeColors(displayName);
-        this.id = displayName.replaceAll(" ", "_").toLowerCase();
+        this.id = CrateManager.stringToIDFormat(displayName);
+    }
+
+    public Crate(String id, String displayName, String description, Map<String, Float> rewardsMap) {
+        this.displayName = displayName;
+        this.id = id;
+        this.description = description;
+        this.rewardsMap = rewardsMap;
+    }
+
+    public Crate clone(){
+        return new Crate(id, displayName, description, rewardsMap);
     }
 
     public String getId() {
         return id;
     }
-
-    public String getName() {
+    public String getDisplayName() {
         return displayName;
     }
     public String getDescription() {
@@ -32,18 +39,17 @@ public class Crate {
     }
 
     public Map<ItemStack, Float> getRewardsMap() {
-        return rewardsMap;
+        Map<ItemStack, Float> convertedMap = new HashMap<>();
+        for (Map.Entry<String, Float> entry : rewardsMap.entrySet()) {
+            convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
+        }
+        return convertedMap;
     }
-
-//    public IAnimation getCrateAnimation() {
-//        return crateAnimation;
-//    }
 
     public void setId(String id) {
         this.id = id;
     }
-
-    public void setName(String name) {
+    public void setDisplayName(String name) {
         this.displayName = name;
     }
     public void setDescription(String description) {
@@ -51,10 +57,27 @@ public class Crate {
     }
 
     public void setRewardsMap(Map<ItemStack, Float> rewardsMap) {
-        this.rewardsMap = rewardsMap;
+        this.rewardsMap.clear();
+        for (Map.Entry<ItemStack, Float> entry : rewardsMap.entrySet()) {
+            this.rewardsMap.put(encodeItemStack(entry.getKey()), entry.getValue());
+        }
     }
 
-//    public void setCrateAnimation(IAnimation crateAnimation) {
-//        this.crateAnimation = crateAnimation;
-//    }
+    public void addReward(ItemStack itemStack, Float chance){
+        rewardsMap.put(encodeItemStack(itemStack), chance);
+    }
+    public void removeReward(ItemStack itemStack){
+        rewardsMap.remove(encodeItemStack(itemStack));
+    }
+
+    String encodeItemStack(ItemStack itemStack){
+        byte[] itemStackAsBytes = itemStack.serializeAsBytes();
+        return Base64.getEncoder().encodeToString(itemStackAsBytes);
+    }
+
+    ItemStack decodeItemStack(String string){
+        byte[] bytes = Base64.getDecoder().decode(string);
+        return ItemStack.deserializeBytes(bytes);
+    }
+
 }
