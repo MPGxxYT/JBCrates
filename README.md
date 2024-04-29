@@ -21,9 +21,9 @@ I will track my progress here and try to think of every possible task.
     - [X] Rename Function
     - [X] Description Function
     - [ ] Choose Animation Function
-    - [ ] Manage Items
-        - [ ] Add Items Function
-        - [ ] Delete Items Function
+    - [ ] Manage Rewards
+        - [ ] Add Reward Function
+        - [ ] Delete Reward Function
     - [X] Delete Crate Function
         - [X] Confirm Delete
 - [ ] Create Animation System
