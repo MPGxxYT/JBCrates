@@ -4,6 +4,7 @@ The plugin that will revolutionize crates. *totally*. Anyways, this plugin will 
 ## Commands
 
 `/jbcrates` Brings up the menu for managing crates.
+
 `/jbcrates give <player> <crate_id>` Gives the input player a the crated based on the id.
 
 ## To-Do
