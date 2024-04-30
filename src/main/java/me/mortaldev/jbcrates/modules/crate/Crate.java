@@ -10,14 +10,26 @@ public class Crate {
     String id;
     String displayName;
     String description = "&7This is the default description.";
-    Map<String, Float> rewardsMap = new HashMap<>();
+    Map<String, Double> rewardsMap = new HashMap<>();
 
     public Crate(String displayName) {
         this.displayName = displayName;
-        this.id = CrateManager.stringToIDFormat(displayName);
+
+        String formattedName = CrateManager.stringToIDFormat(displayName);
+        this.id = formattedName;
+
+        // Adds numbers to the ID based on if its taken already.
+        if (CrateManager.crateByIDExists(this.id)) {
+            int idCount = CrateManager.crateByIDCount(this.id);
+            this.id = formattedName + "_" + idCount;
+            while (CrateManager.crateByIDExists(this.id)) {
+                idCount++;
+                this.id = formattedName + "_" + idCount;
+            }
+        }
     }
 
-    public Crate(String id, String displayName, String description, Map<String, Float> rewardsMap) {
+    private Crate(String id, String displayName, String description, Map<String, Double> rewardsMap) {
         this.displayName = displayName;
         this.id = id;
         this.description = description;
@@ -38,9 +50,9 @@ public class Crate {
         return description;
     }
 
-    public Map<ItemStack, Float> getRewardsMap() {
-        Map<ItemStack, Float> convertedMap = new HashMap<>();
-        for (Map.Entry<String, Float> entry : rewardsMap.entrySet()) {
+    public Map<ItemStack, Double> getRewardsMap() {
+        Map<ItemStack, Double> convertedMap = new HashMap<>();
+        for (Map.Entry<String, Double> entry : rewardsMap.entrySet()) {
             convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
         }
         return convertedMap;
@@ -56,18 +68,11 @@ public class Crate {
         this.description = description;
     }
 
-    public void setRewardsMap(Map<ItemStack, Float> rewardsMap) {
+    public void setRewardsMap(Map<ItemStack, Double> rewardsMap) {
         this.rewardsMap.clear();
-        for (Map.Entry<ItemStack, Float> entry : rewardsMap.entrySet()) {
+        for (Map.Entry<ItemStack, Double> entry : rewardsMap.entrySet()) {
             this.rewardsMap.put(encodeItemStack(entry.getKey()), entry.getValue());
         }
-    }
-
-    public void addReward(ItemStack itemStack, Float chance){
-        rewardsMap.put(encodeItemStack(itemStack), chance);
-    }
-    public void removeReward(ItemStack itemStack){
-        rewardsMap.remove(encodeItemStack(itemStack));
     }
 
     String encodeItemStack(ItemStack itemStack){
@@ -78,6 +83,31 @@ public class Crate {
     ItemStack decodeItemStack(String string){
         byte[] bytes = Base64.getDecoder().decode(string);
         return ItemStack.deserializeBytes(bytes);
+    }
+
+    // addReward method
+    public void addReward(ItemStack reward, Double probability) {
+        String encodedItemStack = encodeItemStack(reward);
+        this.rewardsMap.put(encodedItemStack, probability);
+    }
+
+    // removeReward method
+    public boolean removeReward(ItemStack reward) {
+        String encodedItemStack = encodeItemStack(reward);
+        if(this.rewardsMap.containsKey(encodedItemStack)){
+            this.rewardsMap.remove(encodedItemStack);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updateReward(ItemStack reward, Double newProbability) {
+        String encodedItemStack = encodeItemStack(reward);
+        if(this.rewardsMap.containsKey(encodedItemStack)){
+            this.rewardsMap.put(encodedItemStack, newProbability);
+            return true;
+        }
+        return false;
     }
 
 }

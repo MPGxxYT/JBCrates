@@ -7,22 +7,28 @@ import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import me.mortaldev.jbcrates.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
-public class ConfirmDeleteCrateMenu extends InventoryGUI {
+import java.util.Map;
+
+public class RemoveCrateRewardMenu extends InventoryGUI {
 
   private final Crate crate;
+  private final Map.Entry<ItemStack, Double> reward;
 
-  public ConfirmDeleteCrateMenu(Crate crateToDelete) {
-    this.crate = crateToDelete;
+  public RemoveCrateRewardMenu(Crate crate, Map.Entry<ItemStack, Double> reward) {
+    this.crate = crate;
+    this.reward = reward;
   }
 
   @Override
   protected Inventory createInventory() {
-    return Bukkit.createInventory(null, 3 * 9, TextUtil.format("&c&lDelete Crate"));
+    return Bukkit.createInventory(null, 3 * 9, TextUtil.format("&c&lRemove Crate Reward"));
   }
 
   @Override
@@ -32,7 +38,8 @@ public class ConfirmDeleteCrateMenu extends InventoryGUI {
     this.addButton(10, cancelButton());
     this.addButton(11, cancelButton());
 
-    this.getInventory().setItem(13, CrateManager.generateCrateItemStack(crate));
+    this.getInventory()
+        .setItem(13, CrateManager.generateRewardItemStack(reward.getKey().clone(), reward.getValue()));
 
     this.addButton(15, confirmButton());
     this.addButton(16, confirmButton());
@@ -45,14 +52,15 @@ public class ConfirmDeleteCrateMenu extends InventoryGUI {
         .creator(
             player ->
                 ItemStackBuilder.builder(Material.LIME_STAINED_GLASS_PANE)
-                    .name("&2&lYES! DELETE '" + crate.getId() + "'")
+                    .name("&2&lYES! REMOVE '" + Utils.itemName(reward.getKey()) + "'")
                     .build())
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              CrateManager.removeCrate(crate);
-              player.sendMessage(TextUtil.format("&fDeleted crate &3'" + crate.getId() + "'&f."));
-              Main.getGuiManager().openGUI(new ViewCratesMenu(1), player);
+              crate.removeReward(reward.getKey());
+              CrateManager.balanceRewardChances(crate);
+              CrateManager.updateCrate(crate.getId(), crate);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
             });
   }
 
@@ -61,12 +69,12 @@ public class ConfirmDeleteCrateMenu extends InventoryGUI {
         .creator(
             player ->
                 ItemStackBuilder.builder(Material.RED_STAINED_GLASS_PANE)
-                    .name("&c&lNO! DONT DELETE '" + crate.getId() + "'")
+                    .name("&c&lNO! DONT REMOVE '" + Utils.itemName(reward.getKey()) + "'")
                     .build())
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
             });
   }
 }
