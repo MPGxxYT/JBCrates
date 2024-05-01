@@ -55,7 +55,7 @@ public class GetCrateRewardsCommand {
 
       @Override
       public String getPermission() {
-        return "";
+        return "jbcrates.getcraterewards";
       }
 
       @Override
