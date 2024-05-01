@@ -226,7 +226,7 @@ public class CrateManager {
             .name(crate.getDisplayName())
             .addLore("&7" + crate.getDescription())
             .addLore("&7")
-            .addLore("&7Place anywhere to unlock &e" + crate.getAmountToWin())
+            .addLore("&7Place anywhere at spawn unlock &e" + crate.getAmountToWin())
             .addLore("&7of a total &e" + crate.getRewardsMap().size() + " &7possible rewards!")
             .addLore("&7")
             .addLore("&7Possible Rewards:");

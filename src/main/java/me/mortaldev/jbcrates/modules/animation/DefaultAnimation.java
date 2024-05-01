@@ -51,6 +51,9 @@ public class DefaultAnimation {
     itemEntity.setCanPlayerPickup(false);
     itemEntity.setCanMobPickup(false);
 
+    // Make sure it despawns after 30s incase of issues.
+    itemEntity.setTicksLived(5400);
+
     itemEntity.customName(TextUtil.format(newDisplay));
     itemEntity.setCustomNameVisible(true);
 

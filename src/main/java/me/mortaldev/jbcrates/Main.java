@@ -1,70 +1,103 @@
 package me.mortaldev.jbcrates;
 
+import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
-import me.mortaldev.jbcrates.commands.LoreCommand;
-import me.mortaldev.jbcrates.commands.RenameCommand;
 import me.mortaldev.jbcrates.listeners.OnCratePlaceEvent;
+import me.mortaldev.jbcrates.listeners.OnJoinRewardsReminderEvent;
+import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
+import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.GUIListener;
 import me.mortaldev.jbcrates.modules.menu.GUIManager;
+import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.*;
 
 public final class Main extends JavaPlugin {
 
-    public static Main instance;
-    public static GUIManager guiManager;
-    private static final String LABEL = "JBCrates";
+  public static Main instance;
+  public static GUIManager guiManager;
+  private static final String LABEL = "JBCrates";
+  static List<Location> crateLocationList = new ArrayList<>();
 
-    @Override
-    public void onEnable() {
-        instance = this;
+  public void addCrateLocation(Location location) {
+    crateLocationList.add(location);
+  }
 
-        // DEPENDENCIES
+  public void removeCrateLocation(Location location) {
+    crateLocationList.remove(location);
+  }
 
-//        if (Bukkit.getPluginManager().getPlugin("DecentHolograms") == null){
-//            getLogger().warning("Could not find DecentHolograms! This plugin is required.");
-//            Bukkit.getPluginManager().disablePlugin(this);
-//            return;
-//        }
+  @Override
+  public void onEnable() {
+    instance = this;
 
-        // GUIs
-        guiManager = new GUIManager();
+    CrateProfileManager.loadCrateProfileMap();
+    CrateManager.updateCratesList();
 
-        GUIListener guiListener = new GUIListener(guiManager);
-        Bukkit.getPluginManager().registerEvents(guiListener, this);
+    // DEPENDENCIES
 
-        // Listeners
+    //        if (Bukkit.getPluginManager().getPlugin("DecentHolograms") == null){
+    //            getLogger().warning("Could not find DecentHolograms! This plugin is required.");
+    //            Bukkit.getPluginManager().disablePlugin(this);
+    //            return;
+    //        }
 
-        Bukkit.getPluginManager().registerEvents(new OnCratePlaceEvent(), this);
+    // GUIs
+    guiManager = new GUIManager();
 
-        // DATA FOLDER
+    GUIListener guiListener = new GUIListener(guiManager);
+    Bukkit.getPluginManager().registerEvents(guiListener, this);
 
-        if (!getDataFolder().exists()){
-            getDataFolder().mkdir();
-        }
+    // Listeners
 
-        new JBCrateCommand();
-        new LoreCommand();
-        new RenameCommand();
+    Bukkit.getPluginManager().registerEvents(new OnCratePlaceEvent(), this);
+    Bukkit.getPluginManager().registerEvents(new OnJoinRewardsReminderEvent(), this);
+    Bukkit.getPluginManager().registerEvents(new OnPlayerQuitEvent(), this);
 
-        getLogger().info(LABEL + " Enabled");
+    // DATA FOLDER
+
+    if (!getDataFolder().exists()) {
+      getDataFolder().mkdir();
     }
 
-    @Override
-    public void onDisable() {
-        getLogger().info(LABEL + " Disabled");
+    new JBCrateCommand();
+    new GetCrateRewardsCommand();
+    // new LoreCommand();
+    // new RenameCommand();
+
+    getLogger().info(LABEL + " Enabled");
+  }
+
+  @Override
+  public void onDisable() {
+    getLogger().info(LABEL + " Disabled");
+
+    // Sets all active crates to air on restart.
+    if (!crateLocationList.isEmpty()) {
+      for (Location location : crateLocationList) {
+          location.getBlock().setType(Material.AIR);
+          for(int i = 0; i < 2; i++) {
+              location.subtract(0, 1, 0).getBlock().setType(Material.AIR);
+          }
+      }
     }
 
-    public static Main getInstance() {
-        return instance;
-    }
-    public static String getLabel() {
-        return LABEL;
-    }
+    CrateProfileManager.saveCrateProfileMap();
+  }
 
-    public static GUIManager getGuiManager() {
-        return guiManager;
-    }
+  public static Main getInstance() {
+    return instance;
+  }
+
+  public static String getLabel() {
+    return LABEL;
+  }
+
+  public static GUIManager getGuiManager() {
+    return guiManager;
+  }
 }
-
-

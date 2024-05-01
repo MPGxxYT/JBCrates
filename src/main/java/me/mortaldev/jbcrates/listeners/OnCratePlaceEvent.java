@@ -3,6 +3,7 @@ package me.mortaldev.jbcrates.listeners;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateExecutor;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
+import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import me.mortaldev.jbcrates.utils.Cooldown;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
@@ -42,6 +43,16 @@ public class OnCratePlaceEvent implements Listener {
       int timeLeft = cooldown.getTimeLeft(player.getUniqueId());
       player.sendMessage(TextUtil.format("&cYou can open another crate again in " + timeLeft + " seconds."));
       event.setCancelled(true);
+      return;
+    }
+    if (CrateProfileManager.hasCrateProfile(player.getUniqueId())) {
+      event.setCancelled(true);
+      player.sendMessage(TextUtil.format("&cYou must get your &l/getCrateRewards&c before you can open another crate."));
+      return;
+    }
+    if (!location.clone().add(0, 1, 0).getBlock().getType().equals(Material.AIR) || !location.clone().add(0, 2, 0).getBlock().getType().equals(Material.AIR)) {
+      event.setCancelled(true);
+      player.sendMessage(TextUtil.format("&cYou cannot place it here. Try somewhere else."));
       return;
     }
     if (location.y() < Y_LEVEL && !location.getWorld().getName().equalsIgnoreCase(WORLD_NAME)) {

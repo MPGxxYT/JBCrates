@@ -3,6 +3,8 @@ package me.mortaldev.jbcrates.modules.crate;
 import com.destroystokyo.paper.ParticleBuilder;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.animation.DefaultAnimation;
+import me.mortaldev.jbcrates.modules.profile.CrateProfile;
+import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
@@ -30,6 +32,7 @@ public class CrateExecutor {
   private List<ItemStack> winningItems;
   private Player player;
   private final Main MAIN_INSTANCE = Main.getInstance();
+  private CrateProfile crateProfile;
 
   public interface Callback {
     void onCompletion();
@@ -46,7 +49,16 @@ public class CrateExecutor {
   public void execute(Block block, Player player) {
     this.player = player;
     winningItems = getWinningCrateItems(crate);
+
+    crateProfile = new CrateProfile(player.getUniqueId());
+    for (ItemStack item : winningItems) {
+      crateProfile.addItem(item);
+    }
+    CrateProfileManager.addCrateProfile(crateProfile);
+    CrateProfileManager.addToCrateActiveList(player.getUniqueId());
+
     location = block.getLocation().clone().add(0, 2, 0);
+    Main.getInstance().addCrateLocation(location);
     animateCrateMovement(block, this::runMainAnimation);
   }
 
@@ -96,18 +108,31 @@ public class CrateExecutor {
                   entry.getKey().teleport(location.clone().toCenterLocation().add(0, height, 0));
                   height += 0.75;
                 }
-                for (ItemStack itemStack : winningItems) {
-                  player.sendMessage(
-                      TextUtil.format(
-                          "&6You have won &f" + crate.getRewardsDisplayMap().get(itemStack) + "&6."));
-                  if (Utils.canInventoryHold(player.getInventory(), 1)) {
-                    player.getInventory().addItem(itemStack);
-                  } else {
-                    player.getLocation().getWorld().dropItem(player.getLocation(), itemStack);
-                    player.sendMessage(
-                        TextUtil.format(
-                            "&cNo inventory space. Item dropped on the ground."));
+                if (player.isOnline() && !CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
+                  for (ItemStack itemStack : winningItems) {
+                      player.sendMessage(
+                          TextUtil.format(
+                              "&6You have won &f"
+                                  + crate.getRewardsDisplayMap().get(itemStack)
+                                  + "&6."));
+                      if (Utils.canInventoryHold(player.getInventory(), 1)) {
+                        player.getInventory().addItem(itemStack);
+                        crateProfile.removeItem(itemStack);
+                      } else {
+                        player.sendMessage(
+                            TextUtil.format(
+                                "&cYour inventory was full. Reward added to /getCrateRewards."));
+                      }
+                      if (!crateProfile.getItemList().isEmpty()) {
+                        CrateProfileManager.updateCrateProfile(crateProfile);
+                      } else {
+                        CrateProfileManager.removeCrateProfile(crateProfile);
+                      }
+                    }
                   }
+                CrateProfileManager.removeFromCrateActiveList(player.getUniqueId());
+                if (CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
+                  CrateProfileManager.removeFromWasOfflineList(player.getUniqueId());
                 }
                 Bukkit.getScheduler()
                     .scheduleSyncDelayedTask(
@@ -117,6 +142,7 @@ public class CrateExecutor {
                             popItem(item);
                           }
                           location.getBlock().setType(Material.AIR);
+                          Main.getInstance().removeCrateLocation(location);
                         },
                         60);
               },
