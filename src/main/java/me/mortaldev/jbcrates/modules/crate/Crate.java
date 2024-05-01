@@ -1,5 +1,7 @@
 package me.mortaldev.jbcrates.modules.crate;
 
+import me.mortaldev.jbcrates.utils.Utils;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Base64;
@@ -11,6 +13,8 @@ public class Crate {
     String displayName;
     String description = "&7This is the default description.";
     Map<String, Double> rewardsMap = new HashMap<>();
+    Map<String, String> rewardsDisplayMap = new HashMap<>();
+    Integer amountToWin = 4;
 
     public Crate(String displayName) {
         this.displayName = displayName;
@@ -29,15 +33,17 @@ public class Crate {
         }
     }
 
-    private Crate(String id, String displayName, String description, Map<String, Double> rewardsMap) {
+    private Crate(String id, String displayName, String description, Map<String, Double> rewardsMap, Map<String, String> rewardsDisplayMap, Integer amountToWin) {
         this.displayName = displayName;
         this.id = id;
         this.description = description;
         this.rewardsMap = rewardsMap;
+        this.rewardsDisplayMap = rewardsDisplayMap;
+        this.amountToWin = amountToWin;
     }
 
     public Crate clone(){
-        return new Crate(id, displayName, description, rewardsMap);
+        return new Crate(id, displayName, description, rewardsMap, rewardsDisplayMap, amountToWin);
     }
 
     public String getId() {
@@ -49,10 +55,20 @@ public class Crate {
     public String getDescription() {
         return description;
     }
+    public Integer getAmountToWin() {
+        return amountToWin;
+    }
 
     public Map<ItemStack, Double> getRewardsMap() {
         Map<ItemStack, Double> convertedMap = new HashMap<>();
         for (Map.Entry<String, Double> entry : rewardsMap.entrySet()) {
+            convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
+        }
+        return convertedMap;
+    }
+    public Map<ItemStack, String> getRewardsDisplayMap() {
+        Map<ItemStack, String> convertedMap = new HashMap<>();
+        for (Map.Entry<String, String> entry : rewardsDisplayMap.entrySet()) {
             convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
         }
         return convertedMap;
@@ -74,6 +90,15 @@ public class Crate {
             this.rewardsMap.put(encodeItemStack(entry.getKey()), entry.getValue());
         }
     }
+    public void setRewardsDisplayMap(Map<ItemStack, String> rewardsDisplayMap) {
+        this.rewardsDisplayMap.clear();
+        for (Map.Entry<ItemStack, String> entry : rewardsDisplayMap.entrySet()) {
+            this.rewardsDisplayMap.put(encodeItemStack(entry.getKey()), entry.getValue());
+        }
+    }
+    public void setAmountToWin(Integer amountToWin) {
+        this.amountToWin = amountToWin;
+    }
 
     String encodeItemStack(ItemStack itemStack){
         byte[] itemStackAsBytes = itemStack.serializeAsBytes();
@@ -85,29 +110,49 @@ public class Crate {
         return ItemStack.deserializeBytes(bytes);
     }
 
-    // addReward method
     public void addReward(ItemStack reward, Double probability) {
-        String encodedItemStack = encodeItemStack(reward);
-        this.rewardsMap.put(encodedItemStack, probability);
+        String displayName = "&f" + Utils.itemName(reward);
+        if (reward.getItemMeta().hasDisplayName()) {
+            if (reward.displayName() instanceof TextComponent component) {
+                displayName = component.content();
+            }
+        }
+        addReward(reward, probability, displayName);
     }
 
-    // removeReward method
-    public boolean removeReward(ItemStack reward) {
+    public void addReward(ItemStack reward, Double probability, String display) {
+        String encodedItemStack = encodeItemStack(reward);
+        this.rewardsMap.put(encodedItemStack, probability);
+        this.rewardsDisplayMap.put(encodedItemStack, display);
+    }
+
+    public void removeReward(ItemStack reward) {
         String encodedItemStack = encodeItemStack(reward);
         if(this.rewardsMap.containsKey(encodedItemStack)){
             this.rewardsMap.remove(encodedItemStack);
-            return true;
+            this.rewardsDisplayMap.remove(encodedItemStack);
         }
-        return false;
     }
 
-    public boolean updateReward(ItemStack reward, Double newProbability) {
+    public void updateReward(ItemStack reward, Double newProbability) {
         String encodedItemStack = encodeItemStack(reward);
         if(this.rewardsMap.containsKey(encodedItemStack)){
             this.rewardsMap.put(encodedItemStack, newProbability);
-            return true;
         }
-        return false;
+    }
+
+    public void updateReward(ItemStack reward, Double newProbability, String display) {
+        String encodedItemStack = encodeItemStack(reward);
+        if(this.rewardsMap.containsKey(encodedItemStack)){
+            this.rewardsMap.put(encodedItemStack, newProbability);
+            this.rewardsDisplayMap.put(encodedItemStack, display);
+        }
+    }
+    public void updateReward(ItemStack reward, String displayName) {
+        String encodedItemStack = encodeItemStack(reward);
+        if(this.rewardsMap.containsKey(encodedItemStack)){
+            this.rewardsDisplayMap.put(encodedItemStack, displayName);
+        }
     }
 
 }

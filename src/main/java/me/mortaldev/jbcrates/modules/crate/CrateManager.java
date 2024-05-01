@@ -1,10 +1,9 @@
 package me.mortaldev.jbcrates.modules.crate;
 
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
-import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -43,7 +42,7 @@ public class CrateManager {
 
   public static boolean crateByIDExists(String id) {
     String newID = stringToIDFormat(id);
-    for (Crate crate : crateList) {
+    for (Crate crate : getCrates()) {
       if (crate.getId().equals(newID)) {
         return true;
       }
@@ -54,7 +53,7 @@ public class CrateManager {
   public static int crateByIDCount(String id) {
     String newID = stringToIDFormat(id);
     int count = 0;
-    for (Crate crate : crateList) {
+    for (Crate crate : getCrates()) {
       if (crate.getId().replaceAll("_\\d+", "").equals(newID)) {
         count++;
       }
@@ -63,7 +62,7 @@ public class CrateManager {
   }
 
   public static Crate getCrate(String id) {
-    for (Crate crate : crateList) {
+    for (Crate crate : getCrates()) {
       if (crate.getId().equals(id)) {
         return crate;
       }
@@ -81,6 +80,9 @@ public class CrateManager {
   }
 
   public static void removeCrate(Crate crate) {
+    if (!crateByIDExists(crate.getId())) {
+      return;
+    }
     crateList.remove(crate);
     CrateCRUD.deleteCrate(crate.id);
   }
@@ -91,32 +93,67 @@ public class CrateManager {
     CrateCRUD.saveCrate(newCrate);
   }
 
+  public static List<Component> getCrateRewardsText(Crate crate) {
+    return getCrateRewardsText(crate, crate.getRewardsMap().size(), false);
+  }
+
+  public static List<Component> getCrateRewardsText(Crate crate, boolean displayMode) {
+    return getCrateRewardsText(crate, crate.getRewardsMap().size(), displayMode);
+  }
+
   public static List<Component> getCrateRewardsText(Crate crate, int maxItemsListed) {
+    return getCrateRewardsText(crate, maxItemsListed, false);
+  }
+
+  public static List<Component> getCrateRewardsText(
+      Crate crate, int maxItemsListed, boolean displayMode) {
     List<Component> rewardsText = new ArrayList<>();
     if (crate.getRewardsMap().isEmpty() || crate.getRewardsMap() == null) {
       rewardsText.add(TextUtil.format("&cNo Rewards Inside."));
     } else {
-      int i = 0;
-      for (Map.Entry<ItemStack, Double> entry : crate.getRewardsMap().entrySet()) {
-        if (i <= maxItemsListed) {
-          i++;
+      int j = 0;
+      for (Map.Entry<ItemStack, String> entry : crate.getRewardsDisplayMap().entrySet()) {
+        if (j <= maxItemsListed) {
+          j++;
           ItemStack itemStack = entry.getKey();
-          Double chance = entry.getValue();
-          String displayName = "&f" + Utils.itemName(itemStack);
-          if (itemStack.getItemMeta().hasDisplayName()) {
-            if (itemStack.displayName() instanceof TextComponent component) {
-              displayName = component.content();
+          String displayName = entry.getValue();
+          Double chance = crate.getRewardsMap().get(itemStack);
+          if (itemStack.getAmount() > 1) {
+            if (displayMode) {
+              rewardsText.add(
+                  TextUtil.format("&7 - " + displayName + " x" + itemStack.getAmount()));
+            } else {
+              rewardsText.add(
+                  TextUtil.format(
+                      "&7"
+                          + displayName
+                          + " x"
+                          + itemStack.getAmount()
+                          + " &3"
+                          + chance
+                          + "% Chance"));
+            }
+          } else {
+            if (displayMode) {
+              rewardsText.add(TextUtil.format("&7 - " + displayName));
+            } else {
+              rewardsText.add(TextUtil.format("&7" + displayName + " &3" + chance + "% Chance"));
             }
           }
-          rewardsText.add(
-              TextUtil.format(
-                  "&7" + displayName + " x" + itemStack.getAmount() + " &3" + chance + "% Chance"));
         } else {
           break;
         }
       }
     }
     return rewardsText;
+  }
+
+  public static Double getRewardChancesTotal(Crate crate) {
+    BigDecimal total = new BigDecimal("0");
+    for (Double value : crate.getRewardsMap().values()) {
+      total = total.add(new BigDecimal(value)).setScale(2, RoundingMode.HALF_UP);
+    }
+    return total.doubleValue();
   }
 
   public static boolean rewardChancesIsBalanced(Crate crate) {
@@ -158,18 +195,21 @@ public class CrateManager {
 
   //
 
-  public static ItemStack generateRewardItemStack(ItemStack itemStack, Double chance) {
+  public static ItemStack generateRewardItemStack(ItemStack itemStack, Double chance, String display) {
     ItemStackBuilder.builder(itemStack)
+        .addLore("&7")
+        .addLore("&7Display: " + display)
         .addLore("&7")
         .addLore("&3" + chance + "% Chance")
         .addLore("&7")
         .addLore("&e[Left Click to change chance]")
+        .addLore("&e[Middle Click to change display name]")
         .addLore("&e[Right Click to remove reward]")
         .build();
     return itemStack;
   }
 
-  public static ItemStack generateCrateItemStack(Crate crate) {
+  public static ItemStack generateDisplayCrateItemStack(Crate crate) {
     ItemStackBuilder builder =
         ItemStackBuilder.builder(Material.CHEST)
             .name(crate.getDisplayName())
@@ -178,5 +218,21 @@ public class CrateManager {
             .addLore("&7");
     List<Component> crateRewardsText = CrateManager.getCrateRewardsText(crate, 7);
     return builder.addLore(crateRewardsText).addLore("&7").addLore("&e[EDIT]").build();
+  }
+
+  public static ItemStack generatePlaceCrateItemStack(Crate crate) {
+    ItemStackBuilder builder =
+        ItemStackBuilder.builder(Material.ENDER_CHEST)
+            .name(crate.getDisplayName())
+            .addLore("&7" + crate.getDescription())
+            .addLore("&7")
+            .addLore("&7Place anywhere to unlock &e" + crate.getAmountToWin())
+            .addLore("&7of a total &e" + crate.getRewardsMap().size() + " &7possible rewards!")
+            .addLore("&7")
+            .addLore("&7Possible Rewards:");
+    List<Component> crateRewardsText = CrateManager.getCrateRewardsText(crate, true);
+    ItemStack crateItemStack = builder.addLore(crateRewardsText).build();
+    NBTAPI.addNBT(crateItemStack, "crate_id", crate.getId());
+    return crateItemStack;
   }
 }

@@ -80,7 +80,7 @@ public class ViewCratesMenu extends InventoryGUI {
 
   private InventoryButton crateButton(Crate inputCrate) {
     return new InventoryButton()
-        .creator(player -> CrateManager.generateCrateItemStack(inputCrate))
+        .creator(player -> CrateManager.generateDisplayCrateItemStack(inputCrate))
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();

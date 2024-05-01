@@ -213,7 +213,7 @@ public class TextUtil {
       key = "&" + key;
       editString.replace(0, editString.length(), editString.toString().replace(key, ""));
     }
-    return editString.toString();
+    return editString.toString().replaceAll("<#.{6}>", "");
   }
 
   public enum Types {

@@ -50,10 +50,72 @@ public class CrateRewardsMenu extends InventoryGUI {
     this.getInventory().setItem(24, whiteGlass);
     this.getInventory().setItem(25, whiteGlass);
     this.getInventory().setItem(26, whiteGlass);
+    addButton(24, adjustAmountToWin());
     addButton(22, addRewardButton());
+    addButton(20, balanceRewardChancesButton());
     addButton(18, backButton());
     super.allowBottomInventoryClick(true);
     super.decorate(player);
+  }
+
+  private InventoryButton balanceRewardChancesButton() {
+    return new InventoryButton()
+        .creator(
+            player ->{
+              Double total = CrateManager.getRewardChancesTotal(crate);
+              return ItemStackBuilder.builder(Material.REDSTONE)
+                  .name("&3&lBalance Reward Chances")
+                  .addLore("&7Will balance the reward chances")
+                  .addLore("&7to make sure it adds up to 100%")
+                  .addLore("&7")
+                  .addLore("&3Current: " + total + "%")
+                  .addLore("&7")
+                  .addLore("&e[Click to balance chances]")
+                  .build();
+            })
+        .consumer(
+            event -> {
+              Player player = (Player) event.getWhoClicked();
+              CrateManager.balanceRewardChances(crate);
+              CrateManager.updateCrate(crate.getId(), crate);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+            });
+  }
+
+  private InventoryButton adjustAmountToWin() {
+    return new InventoryButton()
+        .creator(
+            player ->
+                ItemStackBuilder.builder(Material.PAPER)
+                    .name("&3&lAmount To Win")
+                    .addLore("&7The amount of items in this crate")
+                    .addLore("&7that you want the player to receive.")
+                    .addLore("")
+                    .addLore("&3" + crate.getAmountToWin() + " Reward(s)")
+                    .build())
+        .consumer(
+            event -> {
+              Player player = (Player) event.getWhoClicked();
+              new AnvilGUI.Builder()
+                  .plugin(Main.getInstance())
+                  .title("Amount of Rewards to Win")
+                  .itemLeft(
+                      ItemStackBuilder.builder(Material.PAPER)
+                          .name(String.valueOf(crate.getAmountToWin()))
+                          .build())
+                  .onClick(
+                      (slot, stateSnapshot) -> {
+                        if (slot == 2) {
+                          Integer newValue =
+                              Integer.valueOf(stateSnapshot.getText().replaceAll("[^0-9]", ""));
+                          crate.setAmountToWin(newValue);
+                          CrateManager.updateCrate(crate.getId(), crate);
+                          Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+                        }
+                        return Collections.emptyList();
+                      })
+                  .open(player);
+            });
   }
 
   private InventoryButton backButton() {
@@ -103,7 +165,7 @@ public class CrateRewardsMenu extends InventoryGUI {
 
   private InventoryButton rewardButton(Map.Entry<ItemStack, Double> reward) {
     return new InventoryButton()
-        .creator(player -> CrateManager.generateRewardItemStack(reward.getKey().clone(), reward.getValue()))
+        .creator(player -> CrateManager.generateRewardItemStack(reward.getKey().clone(), reward.getValue(), crate.getRewardsDisplayMap().get(reward.getKey())))
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
@@ -123,6 +185,25 @@ public class CrateRewardsMenu extends InventoryGUI {
                             Double newValue =
                                 Double.valueOf(stateSnapshot.getText().replaceAll("[^A+-Z+]", ""));
                             crate.updateReward(reward.getKey(), newValue);
+                            CrateManager.updateCrate(crate.getId(), crate);
+                            Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+                          }
+                          return Collections.emptyList();
+                        })
+                    .open(player);
+              } else if (event.getClick() == ClickType.MIDDLE) {
+                new AnvilGUI.Builder()
+                    .plugin(Main.getInstance())
+                    .title("Reward Display Name")
+                    .itemLeft(
+                        ItemStackBuilder.builder(Material.FLOWER_BANNER_PATTERN)
+                            .name(String.valueOf(crate.getRewardsDisplayMap().get(reward.getKey())))
+                            .build())
+                    .onClick(
+                        (slot, stateSnapshot) -> {
+                          if (slot == 2) {
+                            String display = stateSnapshot.getText();
+                            crate.updateReward(reward.getKey(), display);
                             CrateManager.updateCrate(crate.getId(), crate);
                             Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
                           }

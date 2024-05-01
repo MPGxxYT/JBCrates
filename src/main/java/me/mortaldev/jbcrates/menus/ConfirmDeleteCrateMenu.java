@@ -32,7 +32,7 @@ public class ConfirmDeleteCrateMenu extends InventoryGUI {
     this.addButton(10, cancelButton());
     this.addButton(11, cancelButton());
 
-    this.getInventory().setItem(13, CrateManager.generateCrateItemStack(crate));
+    this.getInventory().setItem(13, CrateManager.generateDisplayCrateItemStack(crate));
 
     this.addButton(15, confirmButton());
     this.addButton(16, confirmButton());

@@ -30,9 +30,9 @@ I will track my progress here and try to think of every possible task.
     - [X] Delete Crate Function
         - [X] Confirm Delete
 - [ ] Create Animation System
-  - [ ] Add Default Animation
-- [ ] Give Command
-  - [ ] On Place Trigger Animation
-    - [ ] Get Winning Item with Math using chances
+  - [X] Add Default Animation
+- [X] Give Command
+  - [X] On Place Trigger Animation
+    - [X] Get Winning Item with Math using chances
 - [ ] Clean Up & Refactor
 - [ ] Fully Test Plugin

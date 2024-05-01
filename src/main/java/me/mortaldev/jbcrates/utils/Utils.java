@@ -1,5 +1,6 @@
 package me.mortaldev.jbcrates.utils;
 
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class Utils {
@@ -16,7 +17,18 @@ public class Utils {
         return Math.max(min, Math.min(max, value));
     }
 
-
+    public static boolean canInventoryHold(Inventory inventory, int amountOfItems){
+        if (inventory.firstEmpty() == -1) {
+            return false;
+        }
+        int nulls = 0;
+        for (ItemStack itemStack : inventory.getStorageContents()) {
+            if (itemStack == null) {
+                nulls++;
+            }
+        }
+      return nulls >= amountOfItems;
+    }
 
     public static String itemName(ItemStack itemStack){
         String name = itemStack.getType().getKey().getKey().replaceAll("_", " ").toLowerCase();
