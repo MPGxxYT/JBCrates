@@ -2,8 +2,6 @@ package me.mortaldev.jbcrates;
 
 import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
-import me.mortaldev.jbcrates.commands.LoreCommand;
-import me.mortaldev.jbcrates.commands.RenameCommand;
 import me.mortaldev.jbcrates.listeners.OnCratePlaceEvent;
 import me.mortaldev.jbcrates.listeners.OnJoinRewardsReminderEvent;
 import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
