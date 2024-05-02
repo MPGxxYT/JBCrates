@@ -4,12 +4,48 @@ import me.mortaldev.jbcrates.records.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextUtil {
+
+  /**
+   * Serializes a Component object to a JSON string using GsonComponentSerializer.
+   *
+   * @param component The Component object to serialize.
+   * @return The serialized JSON representation of the Component object.
+   */
+  public static String serializeComponent(Component component){
+    return GsonComponentSerializer.gson().serialize(component);
+  }
+
+  public static String serializeComponent(String string){
+    return serializeComponent(format(string));
+  }
+
+  /**
+   * Deserializes a JSON string representation of a Component object using GsonComponentSerializer.
+   *
+   * @param string The JSON string to deserialize.
+   * @return The deserialized Component object.
+   */
+  public static Component deserializeComponent(String string){
+    return GsonComponentSerializer.gson().deserialize(string);
+  }
+
+  /**
+   * Converts a Component object to a plain text string representation.
+   *
+   * @param component The Component object to convert.
+   * @return The plain text string representation of the Component object.
+   */
+  public static String componentToString(Component component){
+    return PlainTextComponentSerializer.plainText().serialize(component);
+  }
 
   /**
    * Formats the given string using MiniMessage format tags and returns it as a Component object.

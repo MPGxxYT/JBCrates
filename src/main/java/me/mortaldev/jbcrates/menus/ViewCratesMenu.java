@@ -1,5 +1,6 @@
 package me.mortaldev.jbcrates.menus;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
@@ -8,15 +9,18 @@ import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ViewCratesMenu extends InventoryGUI {
 
@@ -117,24 +121,39 @@ public class ViewCratesMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              new AnvilGUI.Builder()
-                  .plugin(Main.getInstance())
-                  .title("Add Crate")
-                  .itemLeft(ItemStackBuilder.builder(Material.CHEST).name("&7My New Crate").build())
-                  .onClick((slot, stateSnapshot) -> {
-                        if (slot == 2) {
-                          String id = stateSnapshot.getText();
-                          Crate crate = new Crate(id);
-                          CrateManager.addCrate(crate);
-                          Bukkit.getLogger().info(crate.getId());
-                          InventoryGUI gui = new ManageCrateMenu(crate);
-                          Main.getGuiManager().openGUI(gui, player);
-                        }
-                        return Collections.emptyList();
-                  })
-                  .open(player);
+              player.getInventory().close();
+              player.sendMessage("");
+              player.sendMessage(TextUtil.format("&7(Lasts 20s) &3Enter the name for the crate:"));
+              player.sendMessage("");
+              promptMap.put(player, Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
+                promptMap.remove(player);
+                player.sendMessage(TextUtil.format("&cPrompt expired."));
+              }, 20 * 20L));
             });
   }
+  public static Map<Player, Integer> promptMap = new HashMap<>();
+
+  public static class AddCratePromptEvent implements Listener {
+
+    @EventHandler
+    public void addCratePrompt(AsyncChatEvent event){
+      Player player = event.getPlayer();
+      if (!promptMap.containsKey(player)) {
+        return;
+      }
+      event.setCancelled(true);
+      Bukkit.getScheduler().cancelTask(promptMap.remove(player));
+      Component formattedMessage = TextUtil.format(TextUtil.componentToString(event.message()));
+      Crate crate = new Crate(formattedMessage);
+      CrateManager.addCrate(crate);
+      player.sendMessage(TextUtil.format("&3Crate " + crate.getId() + " crated with name: "));
+      player.sendMessage(formattedMessage);
+      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
+        Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player);
+      });
+    }
+  }
+
 
   private InventoryButton searchButton() {
     return new InventoryButton()
@@ -161,7 +180,7 @@ public class ViewCratesMenu extends InventoryGUI {
                                   .filter(
                                       crate ->
                                           crate.getId().toLowerCase().contains(text)
-                                              || crate.getDisplayName().toLowerCase().contains(text))
+                                              || PlainTextComponentSerializer.plainText().serialize(crate.getDisplayName()).toLowerCase().contains(text))
                                   .toList();
                           Main.getGuiManager().openGUI(new ViewCratesMenu(1, newCrateList), player);
                         }

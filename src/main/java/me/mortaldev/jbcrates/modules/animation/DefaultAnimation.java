@@ -5,6 +5,7 @@ import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.crate.CrateExecutor;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -28,7 +29,7 @@ public class DefaultAnimation {
       ItemStack itemStack,
       Integer popDelay,
       boolean IsWinningItem,
-      String display,
+      Component display,
       CrateExecutor.CallbackItem callback) {
     var world = locationOfCrate.getWorld();
 
@@ -40,7 +41,8 @@ public class DefaultAnimation {
         new AtomicReference<>(Math.toRadians(45)); // Tilt angle (45 degrees in this case)
 
     ItemStack clonedItemStack = itemStack.clone();
-    String newDisplay = display + " &fx" + clonedItemStack.getAmount();
+    Component amountComponent = TextUtil.format(" &f&lx" + clonedItemStack.getAmount());
+    display = display.append(amountComponent);
     clonedItemStack.setAmount(1);
     NBTAPI.addNBT(clonedItemStack, "UUID", UUID.randomUUID().toString());
 
@@ -54,7 +56,7 @@ public class DefaultAnimation {
     // Make sure it despawns after 30s incase of issues.
     itemEntity.setTicksLived(5400);
 
-    itemEntity.customName(TextUtil.format(newDisplay));
+    itemEntity.customName(display);
     itemEntity.setCustomNameVisible(true);
 
     AtomicInteger i = new AtomicInteger();

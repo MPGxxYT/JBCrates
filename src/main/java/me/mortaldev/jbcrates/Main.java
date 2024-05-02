@@ -2,9 +2,14 @@ package me.mortaldev.jbcrates;
 
 import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
+import me.mortaldev.jbcrates.commands.LoreCommand;
+import me.mortaldev.jbcrates.commands.RenameCommand;
 import me.mortaldev.jbcrates.listeners.OnCratePlaceEvent;
 import me.mortaldev.jbcrates.listeners.OnJoinRewardsReminderEvent;
 import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
+import me.mortaldev.jbcrates.menus.CrateRewardsMenu;
+import me.mortaldev.jbcrates.menus.ManageCrateMenu;
+import me.mortaldev.jbcrates.menus.ViewCratesMenu;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.GUIListener;
 import me.mortaldev.jbcrates.modules.menu.GUIManager;
@@ -58,6 +63,10 @@ public final class Main extends JavaPlugin {
     Bukkit.getPluginManager().registerEvents(new OnJoinRewardsReminderEvent(), this);
     Bukkit.getPluginManager().registerEvents(new OnPlayerQuitEvent(), this);
 
+    Bukkit.getPluginManager().registerEvents(new ViewCratesMenu.AddCratePromptEvent(), this);
+    Bukkit.getPluginManager().registerEvents(new ManageCrateMenu.SetCrateNamePromptEvent(), this);
+    Bukkit.getPluginManager().registerEvents(new CrateRewardsMenu.SetRewardNamePrompt(), this);
+
     // DATA FOLDER
 
     if (!getDataFolder().exists()) {
@@ -66,8 +75,8 @@ public final class Main extends JavaPlugin {
 
     new JBCrateCommand();
     new GetCrateRewardsCommand();
-    // new LoreCommand();
-    // new RenameCommand();
+    //new LoreCommand();
+    //new RenameCommand();
 
     getLogger().info(LABEL + " Enabled");
   }

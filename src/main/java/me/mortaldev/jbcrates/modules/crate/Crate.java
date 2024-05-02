@@ -1,7 +1,16 @@
 package me.mortaldev.jbcrates.modules.crate;
 
+import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.serializer.ComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Base64;
@@ -14,12 +23,15 @@ public class Crate {
     String description = "&7This is the default description.";
     Map<String, Double> rewardsMap = new HashMap<>();
     Map<String, String> rewardsDisplayMap = new HashMap<>();
-    Integer amountToWin = 4;
+    Integer amountToWin = 1;
 
     public Crate(String displayName) {
-        this.displayName = displayName;
+        this(TextUtil.format(displayName));
+    }
+    public Crate(Component displayName) {
+        this.displayName = TextUtil.serializeComponent(displayName);
 
-        String formattedName = CrateManager.stringToIDFormat(displayName);
+        String formattedName = CrateManager.stringToIDFormat(TextUtil.componentToString(displayName));
         this.id = formattedName;
 
         // Adds numbers to the ID based on if its taken already.
@@ -49,8 +61,8 @@ public class Crate {
     public String getId() {
         return id;
     }
-    public String getDisplayName() {
-        return displayName;
+    public Component getDisplayName() {
+        return TextUtil.deserializeComponent(displayName);
     }
     public String getDescription() {
         return description;
@@ -66,10 +78,10 @@ public class Crate {
         }
         return convertedMap;
     }
-    public Map<ItemStack, String> getRewardsDisplayMap() {
-        Map<ItemStack, String> convertedMap = new HashMap<>();
+    public Map<ItemStack, Component> getRewardsDisplayMap() {
+        Map<ItemStack, Component> convertedMap = new HashMap<>();
         for (Map.Entry<String, String> entry : rewardsDisplayMap.entrySet()) {
-            convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
+            convertedMap.put(decodeItemStack(entry.getKey()), TextUtil.deserializeComponent(entry.getValue()));
         }
         return convertedMap;
     }
@@ -78,7 +90,10 @@ public class Crate {
         this.id = id;
     }
     public void setDisplayName(String name) {
-        this.displayName = name;
+        this.displayName = TextUtil.serializeComponent(name);
+    }
+    public void setDisplayName(Component name) {
+        this.displayName = TextUtil.serializeComponent(name);
     }
     public void setDescription(String description) {
         this.description = description;
@@ -90,10 +105,10 @@ public class Crate {
             this.rewardsMap.put(encodeItemStack(entry.getKey()), entry.getValue());
         }
     }
-    public void setRewardsDisplayMap(Map<ItemStack, String> rewardsDisplayMap) {
+    public void setRewardsDisplayMap(Map<ItemStack, Component> rewardsDisplayMap) {
         this.rewardsDisplayMap.clear();
-        for (Map.Entry<ItemStack, String> entry : rewardsDisplayMap.entrySet()) {
-            this.rewardsDisplayMap.put(encodeItemStack(entry.getKey()), entry.getValue());
+        for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
+            this.rewardsDisplayMap.put(encodeItemStack(entry.getKey()), TextUtil.serializeComponent(entry.getValue()));
         }
     }
     public void setAmountToWin(Integer amountToWin) {
@@ -111,19 +126,23 @@ public class Crate {
     }
 
     public void addReward(ItemStack reward, Double probability) {
-        String displayName = "&f" + Utils.itemName(reward);
+        Component displayName = TextUtil.format("&f" + Utils.itemName(reward.clone()));
         if (reward.getItemMeta().hasDisplayName()) {
-            if (reward.displayName() instanceof TextComponent component) {
-                displayName = component.content();
-            }
+            displayName = reward.getItemMeta().displayName();
         }
+
         addReward(reward, probability, displayName);
     }
 
-    public void addReward(ItemStack reward, Double probability, String display) {
+    public Component getRewardDisplay(ItemStack itemStack){
+        return TextUtil.deserializeComponent(rewardsDisplayMap.get(encodeItemStack(itemStack)));
+    }
+
+    public void addReward(ItemStack reward, Double probability, Component display) {
+        String serializedDisplay = GsonComponentSerializer.gson().serialize(display);
         String encodedItemStack = encodeItemStack(reward);
         this.rewardsMap.put(encodedItemStack, probability);
-        this.rewardsDisplayMap.put(encodedItemStack, display);
+        this.rewardsDisplayMap.put(encodedItemStack, serializedDisplay);
     }
 
     public void removeReward(ItemStack reward) {
@@ -135,24 +154,23 @@ public class Crate {
     }
 
     public void updateReward(ItemStack reward, Double newProbability) {
-        String encodedItemStack = encodeItemStack(reward);
-        if(this.rewardsMap.containsKey(encodedItemStack)){
-            this.rewardsMap.put(encodedItemStack, newProbability);
+        Component displayName = TextUtil.format("&f" + Utils.itemName(reward.clone()));
+        if (reward.getItemMeta().hasDisplayName()) {
+            displayName = reward.getItemMeta().displayName();
         }
+        updateReward(reward, newProbability, displayName);
     }
 
-    public void updateReward(ItemStack reward, Double newProbability, String display) {
+    public void updateReward(ItemStack reward, Double newProbability, Component display) {
         String encodedItemStack = encodeItemStack(reward);
         if(this.rewardsMap.containsKey(encodedItemStack)){
             this.rewardsMap.put(encodedItemStack, newProbability);
-            this.rewardsDisplayMap.put(encodedItemStack, display);
+            this.rewardsDisplayMap.put(encodedItemStack, TextUtil.serializeComponent(display));
         }
     }
-    public void updateReward(ItemStack reward, String displayName) {
+    public void updateReward(ItemStack reward, Component display) {
         String encodedItemStack = encodeItemStack(reward);
-        if(this.rewardsMap.containsKey(encodedItemStack)){
-            this.rewardsDisplayMap.put(encodedItemStack, displayName);
-        }
+        updateReward(reward, rewardsMap.get(encodedItemStack), display);
     }
 
 }

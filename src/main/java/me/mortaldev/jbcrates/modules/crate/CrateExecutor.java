@@ -8,6 +8,7 @@ import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CrateExecutor {
@@ -65,8 +67,8 @@ public class CrateExecutor {
   void runMainAnimation() {
     final int[] i = {1};
     long startMulti = 120 / crate.getRewardsMap().size();
-    Map<ItemStack, String> rewardsDisplayMap = crate.getRewardsDisplayMap();
-    for (Map.Entry<ItemStack, String> entry : rewardsDisplayMap.entrySet()) {
+    Map<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
+    for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
       boolean winning = winningItems.contains(entry.getKey());
       Bukkit.getScheduler()
           .scheduleSyncDelayedTask(
@@ -112,9 +114,7 @@ public class CrateExecutor {
                   for (ItemStack itemStack : winningItems) {
                       player.sendMessage(
                           TextUtil.format(
-                              "&6You have won &f"
-                                  + crate.getRewardsDisplayMap().get(itemStack)
-                                  + "&6."));
+                              "&6You have won &f").append(crate.getRewardsDisplayMap().get(itemStack)).append(TextUtil.format("&6.")));
                       if (Utils.canInventoryHold(player.getInventory(), 1)) {
                         player.getInventory().addItem(itemStack);
                         crateProfile.removeItem(itemStack);

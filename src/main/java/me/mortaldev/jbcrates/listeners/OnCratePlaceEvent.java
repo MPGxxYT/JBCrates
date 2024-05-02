@@ -71,6 +71,11 @@ public class OnCratePlaceEvent implements Listener {
       player.sendMessage(TextUtil.format("&cYou have no inventory space for this."));
       return;
     }
+    if (crate.getRewardsMap().isEmpty()) {
+      event.setCancelled(true);
+      player.sendMessage(TextUtil.format("&cThis crate has nothing in it. Cannot open."));
+      return;
+    }
     new CrateExecutor(crate).execute(event.getBlock(), player);
     cooldown.start(player.getUniqueId(), 20 * 1000L);
   }

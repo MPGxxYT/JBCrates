@@ -37,7 +37,8 @@ public class CrateManager {
   public static String stringToIDFormat(String string) {
     string = TextUtil.removeDecoration(string);
     string = TextUtil.removeColors(string);
-    return string.replaceAll(" ", "_").toLowerCase();
+    string = string.replaceAll(" ", "_").toLowerCase();
+    return string.replaceAll("\\W", "").toLowerCase();
   }
 
   public static boolean crateByIDExists(String id) {
@@ -112,33 +113,24 @@ public class CrateManager {
       rewardsText.add(TextUtil.format("&cNo Rewards Inside."));
     } else {
       int j = 0;
-      for (Map.Entry<ItemStack, String> entry : crate.getRewardsDisplayMap().entrySet()) {
+      for (Map.Entry<ItemStack, Component> entry : crate.getRewardsDisplayMap().entrySet()) {
         if (j <= maxItemsListed) {
           j++;
           ItemStack itemStack = entry.getKey();
-          String displayName = entry.getValue();
+          Component displayName = entry.getValue();
           Double chance = crate.getRewardsMap().get(itemStack);
-          if (itemStack.getAmount() > 1) {
-            if (displayMode) {
-              rewardsText.add(
-                  TextUtil.format("&7 - " + displayName + " x" + itemStack.getAmount()));
-            } else {
-              rewardsText.add(
-                  TextUtil.format(
-                      "&7"
-                          + displayName
-                          + " x"
-                          + itemStack.getAmount()
-                          + " &3"
-                          + chance
-                          + "% Chance"));
-            }
+          if (displayMode) {
+            rewardsText.add(
+                TextUtil.format("&7 - ")
+                    .append(displayName)
+                    .append(TextUtil.format(" x" + itemStack.getAmount())));
           } else {
-            if (displayMode) {
-              rewardsText.add(TextUtil.format("&7 - " + displayName));
-            } else {
-              rewardsText.add(TextUtil.format("&7" + displayName + " &3" + chance + "% Chance"));
-            }
+            rewardsText.add(
+                TextUtil.format("&7")
+                    .append(displayName)
+                    .append(
+                        TextUtil.format(
+                            " x" + itemStack.getAmount() + " &3" + chance + "% Chance")));
           }
         } else {
           break;
@@ -195,10 +187,12 @@ public class CrateManager {
 
   //
 
-  public static ItemStack generateRewardItemStack(ItemStack itemStack, Double chance, String display) {
+  public static ItemStack generateRewardItemStack(
+      ItemStack itemStack, Double chance, Component display) {
+
     ItemStackBuilder.builder(itemStack)
         .addLore("&7")
-        .addLore("&7Display: " + display)
+        .addLore(TextUtil.format("&7Display: ").append(display))
         .addLore("&7")
         .addLore("&3" + chance + "% Chance")
         .addLore("&7")

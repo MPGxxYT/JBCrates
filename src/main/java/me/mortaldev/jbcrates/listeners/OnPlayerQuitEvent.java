@@ -14,7 +14,6 @@ public class OnPlayerQuitEvent implements Listener {
     Player player = event.getPlayer();
     if (CrateProfileManager.getCrateActiveList().contains(player.getUniqueId()) && !CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
       CrateProfileManager.addToWasOfflineList(player.getUniqueId());
-      Bukkit.getLogger().info(CrateProfileManager.getWasOfflineList().toString());
     }
   }
 }

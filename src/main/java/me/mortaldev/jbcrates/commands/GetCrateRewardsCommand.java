@@ -5,6 +5,7 @@ import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import me.mortaldev.jbcrates.utils.CommandHandler;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +37,8 @@ public class GetCrateRewardsCommand {
         }
         for (ItemStack itemStack : itemList) {
           player.getInventory().addItem(itemStack);
-          player.sendMessage(TextUtil.format("&6You received " + Utils.itemName(itemStack)));
+          Component append = itemStack.getItemMeta().hasDisplayName() ? itemStack.getItemMeta().displayName() : TextUtil.format(Utils.itemName(itemStack));
+          player.sendMessage(TextUtil.format("&6You received ").append(append));
           CrateProfileManager.removeCrateProfile(player.getUniqueId());
         }
         return true;

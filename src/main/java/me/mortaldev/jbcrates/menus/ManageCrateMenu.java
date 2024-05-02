@@ -1,10 +1,12 @@
 package me.mortaldev.jbcrates.menus;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
+import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
@@ -12,10 +14,14 @@ import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ManageCrateMenu extends InventoryGUI {
 
@@ -145,23 +151,39 @@ public class ManageCrateMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              new AnvilGUI.Builder()
-                  .plugin(Main.getInstance())
-                  .title("Rename Crate: " + crate.getId())
-                  .itemLeft(
-                      ItemStackBuilder.builder(Material.NAME_TAG)
-                          .name(crate.getDisplayName())
-                          .build())
-                  .onClick(
-                      (slot, stateSnapshot) -> {
-                        if (slot == 2) {
-                          crate.setDisplayName(stateSnapshot.getText());
-                          CrateManager.updateCrate(crate.getId(), crate);
-                          Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player);
-                        }
-                        return Collections.emptyList();
-                      })
-                  .open(player);
+              player.getInventory().close();
+              player.sendMessage("");
+              player.sendMessage(TextUtil.format("&7(Lasts 20s) &3Enter the new name for the crate:"));
+              player.sendMessage("");
+              setNamePromptMap.put(player, new Pair<>(crate, Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
+                setNamePromptMap.remove(player);
+                player.sendMessage(TextUtil.format("&cPrompt expired."));
+              }, 20 * 20L)));
             });
   }
+
+  public static Map<Player, Pair<Crate, Integer>> setNamePromptMap = new HashMap<>();
+
+  public static class SetCrateNamePromptEvent implements Listener {
+    @EventHandler
+    public void setCrateNamePrompt(AsyncChatEvent event){
+      Player player = event.getPlayer();
+      if (!setNamePromptMap.containsKey(player)) {
+        return;
+      }
+      event.setCancelled(true);
+      Crate crate = setNamePromptMap.get(player).first();
+      Bukkit.getScheduler().cancelTask(setNamePromptMap.remove(player).second());
+      Component formattedMessage = TextUtil.format(TextUtil.componentToString(event.message()));
+      crate.setDisplayName(formattedMessage);
+      CrateManager.updateCrate(crate.getId(), crate);
+      player.sendMessage(TextUtil.format("&3Crate " + crate.getId() + " updated with name: "));
+      player.sendMessage(formattedMessage);
+      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
+        Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player);
+      });
+    }
+  }
+
+
 }

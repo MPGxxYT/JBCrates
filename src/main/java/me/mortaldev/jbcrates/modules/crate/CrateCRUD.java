@@ -23,7 +23,7 @@ public class CrateCRUD {
     public static Crate saveCrate(Crate crateObject) {
         File filePath = new File(mainFilePath + crateObject.id + ".json");
         GSON.saveJsonObject(filePath, crateObject);
-        Bukkit.getLogger().info("Crate '" + crateObject.getId() + "' has been saved.");
+        //Bukkit.getLogger().info("Crate '" + crateObject.getId() + "' has been saved.");
         return crateObject;
     }
 

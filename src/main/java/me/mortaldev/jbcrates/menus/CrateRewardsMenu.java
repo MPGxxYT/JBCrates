@@ -1,16 +1,21 @@
 package me.mortaldev.jbcrates.menus;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
+import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import net.kyori.adventure.text.Component;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -18,9 +23,10 @@ import org.bukkit.inventory.ItemStack;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
-public class CrateRewardsMenu extends InventoryGUI {
+public class CrateRewardsMenu extends InventoryGUI implements Listener {
 
   private final Crate crate;
 
@@ -61,7 +67,7 @@ public class CrateRewardsMenu extends InventoryGUI {
   private InventoryButton balanceRewardChancesButton() {
     return new InventoryButton()
         .creator(
-            player ->{
+            player -> {
               Double total = CrateManager.getRewardChancesTotal(crate);
               return ItemStackBuilder.builder(Material.REDSTONE)
                   .name("&3&lBalance Reward Chances")
@@ -148,11 +154,11 @@ public class CrateRewardsMenu extends InventoryGUI {
                 return;
               }
               BigDecimal prob;
-              if (crate.getRewardsMap().values().isEmpty()){
+              if (crate.getRewardsMap().values().isEmpty()) {
                 prob = new BigDecimal(100);
               } else {
                 BigDecimal size = new BigDecimal(crate.getRewardsMap().values().size());
-                //size = size.add(new BigDecimal(1));
+                // size = size.add(new BigDecimal(1));
                 BigDecimal hundred = new BigDecimal(100);
                 prob = hundred.divide(size, 2, RoundingMode.HALF_UP);
               }
@@ -165,7 +171,12 @@ public class CrateRewardsMenu extends InventoryGUI {
 
   private InventoryButton rewardButton(Map.Entry<ItemStack, Double> reward) {
     return new InventoryButton()
-        .creator(player -> CrateManager.generateRewardItemStack(reward.getKey().clone(), reward.getValue(), crate.getRewardsDisplayMap().get(reward.getKey())))
+        .creator(
+            player ->
+                CrateManager.generateRewardItemStack(
+                    reward.getKey().clone(),
+                    reward.getValue(),
+                    crate.getRewardDisplay(reward.getKey())))
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
@@ -192,25 +203,55 @@ public class CrateRewardsMenu extends InventoryGUI {
                         })
                     .open(player);
               } else if (event.getClick() == ClickType.MIDDLE) {
-                new AnvilGUI.Builder()
-                    .plugin(Main.getInstance())
-                    .title("Reward Display Name")
-                    .itemLeft(
-                        ItemStackBuilder.builder(Material.FLOWER_BANNER_PATTERN)
-                            .name(String.valueOf(crate.getRewardsDisplayMap().get(reward.getKey())))
-                            .build())
-                    .onClick(
-                        (slot, stateSnapshot) -> {
-                          if (slot == 2) {
-                            String display = stateSnapshot.getText();
-                            crate.updateReward(reward.getKey(), display);
-                            CrateManager.updateCrate(crate.getId(), crate);
-                            Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
-                          }
-                          return Collections.emptyList();
-                        })
-                    .open(player);
+                player.getInventory().close();
+                player.sendMessage("");
+                player.sendMessage(
+                    TextUtil.format("&7(Lasts 20s) &3Enter the new name for the crate:"));
+                player.sendMessage("");
+                setRewardNamePromptMap.put(player, new Pair<>(crate, reward.getKey()));
+                taskMap.put(
+                    player,
+                    Bukkit.getScheduler()
+                        .scheduleSyncDelayedTask(
+                            Main.getInstance(),
+                            () -> {
+                              setRewardNamePromptMap.remove(player);
+                              taskMap.remove(player);
+                              player.sendMessage(TextUtil.format("&cPrompt expired."));
+                            },
+                            20 * 20L));
               }
             });
+  }
+
+  public static Map<Player, Pair<Crate, ItemStack>> setRewardNamePromptMap = new HashMap<>();
+  public static Map<Player, Integer> taskMap = new HashMap<>();
+
+  public static class SetRewardNamePrompt implements Listener {
+    @EventHandler
+    public void setCrateNamePrompt(AsyncChatEvent event) {
+      Player player = event.getPlayer();
+      if (!setRewardNamePromptMap.containsKey(player)) {
+        return;
+      }
+      event.setCancelled(true);
+      Crate crate = setRewardNamePromptMap.get(player).first();
+      ItemStack itemStack = setRewardNamePromptMap.remove(player).second();
+      Bukkit.getScheduler().cancelTask(taskMap.get(player));
+      Component formattedText = TextUtil.format(TextUtil.componentToString(event.message()));
+      crate.updateReward(itemStack, formattedText);
+      CrateManager.updateCrate(crate.getId(), crate);
+      player.sendMessage(
+          TextUtil.format("&3Reward ")
+              .append(itemStack.displayName())
+              .append(TextUtil.format(" updated with name: ")));
+      player.sendMessage(formattedText);
+      Bukkit.getScheduler()
+          .scheduleSyncDelayedTask(
+              Main.getInstance(),
+              () -> {
+                Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              });
+    }
   }
 }
