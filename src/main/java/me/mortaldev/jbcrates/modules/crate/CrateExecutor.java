@@ -160,8 +160,8 @@ public class CrateExecutor {
           .scheduleSyncDelayedTask(
               MAIN_INSTANCE,
               () -> {
-                location.getBlock().setType(Material.AIR);
-                location.add(0, 1, 0).getBlock().setBlockData(blockData);
+                location.getBlock().setType(Material.AIR, false);
+                location.add(0, 1, 0).getBlock().setBlockData(blockData, false);
                 particleBuilder
                     .count(10)
                     .offset(-0.5, -0.5, -0.5)

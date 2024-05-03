@@ -88,6 +88,14 @@ public class JBCrateCommand {
                 }
                 return true;
               }
+              if (crate.getAmountToWin() > crate.getRewardsMap().size()){
+                if (player == null){
+                  sender.sendMessage("CRATE INCORRECTLY CONFIGURED: amountToWin > totalItems (" + crate.getId() + ")");
+                } else {
+                  player.sendMessage(TextUtil.format("&cCRATE INCORRECTLY CONFIGURED: amountToWin > totalItems &7(" + crate.getId() + ")"));
+                }
+                return true;
+              }
               ItemStack itemStack = CrateManager.generatePlaceCrateItemStack(crate);
               offlinePlayer.getPlayer().getInventory().addItem(itemStack);
               Bukkit.getLogger().info("Gave " + offlinePlayer.getName() + " a crate: " + crate.getId());

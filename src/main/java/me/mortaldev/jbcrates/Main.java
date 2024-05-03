@@ -23,8 +23,9 @@ public final class Main extends JavaPlugin {
 
   public static Main instance;
   public static GUIManager guiManager;
-  private static final String LABEL = "JBCrates";
   static List<Location> crateLocationList = new ArrayList<>();
+  private static final String LABEL = "JBCrates";
+  private static final String CRATE_PLACE_WORLD_NAME = "spawn";
 
   public void addCrateLocation(Location location) {
     crateLocationList.add(location);
@@ -73,8 +74,8 @@ public final class Main extends JavaPlugin {
 
     new JBCrateCommand();
     new GetCrateRewardsCommand();
-    //new LoreCommand();
-    //new RenameCommand();
+    // new LoreCommand();
+    // new RenameCommand();
 
     getLogger().info(LABEL + " Enabled");
   }
@@ -86,10 +87,10 @@ public final class Main extends JavaPlugin {
     // Sets all active crates to air on restart.
     if (!crateLocationList.isEmpty()) {
       for (Location location : crateLocationList) {
-          location.getBlock().setType(Material.AIR);
-          for(int i = 0; i < 2; i++) {
-              location.subtract(0, 1, 0).getBlock().setType(Material.AIR);
-          }
+        location.getBlock().setType(Material.AIR);
+        for (int i = 0; i < 2; i++) {
+          location.subtract(0, 1, 0).getBlock().setType(Material.AIR);
+        }
       }
     }
 
@@ -102,6 +103,9 @@ public final class Main extends JavaPlugin {
 
   public static String getLabel() {
     return LABEL;
+  }
+  public static String getCratePlaceWorldName() {
+    return CRATE_PLACE_WORLD_NAME;
   }
 
   public static GUIManager getGuiManager() {

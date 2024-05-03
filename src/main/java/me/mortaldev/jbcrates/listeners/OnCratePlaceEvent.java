@@ -1,5 +1,6 @@
 package me.mortaldev.jbcrates.listeners;
 
+import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateExecutor;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
@@ -11,16 +12,18 @@ import me.mortaldev.jbcrates.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class OnCratePlaceEvent implements Listener {
 
   private static final int Y_LEVEL = 125;
-  private static final String WORLD_NAME = "spawn";
   public static final String CRATE_TAG = "crate_id";
   public static final Cooldown cooldown = new Cooldown();
 
@@ -55,7 +58,8 @@ public class OnCratePlaceEvent implements Listener {
       player.sendMessage(TextUtil.format("&cYou cannot place it here. Try somewhere else."));
       return;
     }
-    if (location.y() < Y_LEVEL && !location.getWorld().getName().equalsIgnoreCase(WORLD_NAME)) {
+    if (location.y() < Y_LEVEL
+        || !location.getWorld().getName().equalsIgnoreCase(Main.getCratePlaceWorldName())) {
       event.setCancelled(true);
       player.sendMessage(TextUtil.format("&cYou must be at spawn to open this."));
       return;
@@ -75,6 +79,19 @@ public class OnCratePlaceEvent implements Listener {
       event.setCancelled(true);
       player.sendMessage(TextUtil.format("&cThis crate has nothing in it. Cannot open."));
       return;
+    }
+    Block blockPlaced = event.getBlockPlaced();
+    BlockData blockData = blockPlaced.getBlockData();
+    event.setCancelled(true);
+    blockPlaced.getLocation().getBlock().setType(Material.ENDER_CHEST, false);
+    blockPlaced.getLocation().getBlock().setBlockData(blockData, false);
+    int amount = itemInHand.getAmount() - 1;
+    EquipmentSlot hand = event.getHand();
+    if (amount <= 0) {
+      player.getInventory().setItem(hand, new ItemStack(Material.AIR));
+    } else {
+      itemInHand.setAmount(amount);
+      player.getInventory().setItem(hand, itemInHand);
     }
     new CrateExecutor(crate).execute(event.getBlock(), player);
     cooldown.start(player.getUniqueId(), 20 * 1000L);
