@@ -1,6 +1,8 @@
 # JBCrates
 
 The plugin that will revolutionize crates. *totally*. Anyways, this plugin will be the crates plugin used on the PrismForge Jailbreak server. 
+
+Built on Paper 1.19.4. So all releases support Paper 1.19.4.
 ## Commands
 
 
