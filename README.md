@@ -31,8 +31,8 @@ I will track my progress here and try to think of every possible task.
 
 ## Extra
 
-Make it pause a little longer for the first placement.
-And extend the display end before disappearing.
-Add any input corrections and checks.
-Fix regexs
-No description then remove line
+* Make it pause a little longer for the first placement.
+* And extend the display end before disappearing.
+* Add any input corrections and checks.
+* Fix regexs
+* No description then remove line
