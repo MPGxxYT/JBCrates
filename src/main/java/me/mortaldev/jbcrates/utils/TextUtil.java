@@ -54,11 +54,7 @@ public class TextUtil {
    * @return the formatted string as a Component object
    */
   public static Component format(String str) {
-    String result = asString(str, false);
-    result = asParam(result);
-    return MiniMessage.miniMessage()
-        .deserialize(result)
-        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+    return format(str, false);
   }
 
   /**
@@ -71,6 +67,9 @@ public class TextUtil {
   public static Component format(String str, boolean disableReset) {
     String result = asString(str, disableReset);
     result = asParam(result);
+    if (result.contains("§")) {
+      result = result.replaceAll("§", "&");
+    }
     return MiniMessage.miniMessage()
         .deserialize(result)
         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);

@@ -25,14 +25,16 @@ I will track my progress here and try to think of every possible task.
 - [ ] Clean Up & Refactor
 - [ ] Bugs
   - [ ] Sometimes when its super laggy, rewards list fails
-  - [ ] You cannot pickup crates when dropping them.
+  - [ ] You cannot pick up crates when dropping them. (skript conflict?)
 - [ ] Possible Additions
   - [ ] Lore & Name updating for crates.
 
 ## Extra
+[//] Completed
 
-* Make it pause a little longer for the first placement.
-* And extend the display end before disappearing.
+* Make it pause a little longer for the first placement. //
+* And extend the display end before disappearing. //
 * Add any input corrections and checks.
-* Fix regexs
-* No description then remove line
+* Check & fix regex's
+* No description then remove line //
+* Set up a Config for the plugin

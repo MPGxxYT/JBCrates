@@ -66,7 +66,7 @@ public class CrateExecutor {
 
   void runMainAnimation() {
     final int[] i = {1};
-    long startMulti = 120 / crate.getRewardsMap().size();
+    long startMulti = (6 * 20) / crate.getRewardsMap().size();
     Map<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
     for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
       boolean winning = winningItems.contains(entry.getKey());
@@ -78,7 +78,7 @@ public class CrateExecutor {
                       .animate(
                           location.toCenterLocation(),
                           entry.getKey(),
-                          140,
+                          7 * 20,
                           winning,
                           entry.getValue(),
                           (item, bool, taskID) -> {
@@ -144,30 +144,34 @@ public class CrateExecutor {
                           location.getBlock().setType(Material.AIR);
                           Main.getInstance().removeCrateLocation(location);
                         },
-                        60);
+                        7 * 20L);
               },
-              60);
+              3 * 20L);
     }
   }
 
   void animateCrateMovement(Block block, Callback callback) {
     BlockData blockData = block.getBlockData();
     ParticleBuilder particleBuilder = new ParticleBuilder(Particle.SCRAPE);
-    Location location = block.getLocation();
-    for (int i = 0; i < 2; i++) {
+    Location loc = this.location.clone().subtract(0, 2, 0);
+    for (int i = 0; i < 3; i++) {
       int finalI = i;
       Bukkit.getScheduler()
           .scheduleSyncDelayedTask(
               MAIN_INSTANCE,
               () -> {
-                location.getBlock().setType(Material.AIR, false);
-                location.add(0, 1, 0).getBlock().setBlockData(blockData, false);
+                if (finalI == 0) {
+                  loc.getBlock().setBlockData(blockData, false);
+                } else {
+                  loc.getBlock().setType(Material.AIR, false);
+                  loc.add(0, 1, 0).getBlock().setBlockData(blockData, false);
+                }
                 particleBuilder
                     .count(10)
                     .offset(-0.5, -0.5, -0.5)
-                    .location(location.toCenterLocation())
+                    .location(loc.toCenterLocation())
                     .spawn();
-                if (finalI == 1 && callback != null) {
+                if (finalI == 2 && callback != null) {
                   animateOpenCrate(callback);
                 }
               },
@@ -195,7 +199,7 @@ public class CrateExecutor {
               Bukkit.getScheduler()
                   .scheduleSyncDelayedTask(MAIN_INSTANCE, callback::onCompletion, 10);
             },
-            30);
+            30); // 1.5s
   }
 
   private List<ItemStack> getWinningCrateItems(Crate crate) {

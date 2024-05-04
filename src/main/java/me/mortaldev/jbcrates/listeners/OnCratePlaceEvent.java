@@ -12,7 +12,6 @@ import me.mortaldev.jbcrates.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -80,11 +79,9 @@ public class OnCratePlaceEvent implements Listener {
       player.sendMessage(TextUtil.format("&cThis crate has nothing in it. Cannot open."));
       return;
     }
-    Block blockPlaced = event.getBlockPlaced();
-    BlockData blockData = blockPlaced.getBlockData();
+    BlockData blockData = event.getBlock().getBlockData();
     event.setCancelled(true);
-    blockPlaced.getLocation().getBlock().setType(Material.ENDER_CHEST, false);
-    blockPlaced.getLocation().getBlock().setBlockData(blockData, false);
+    location.getBlock().setBlockData(blockData, false);
     int amount = itemInHand.getAmount() - 1;
     EquipmentSlot hand = event.getHand();
     if (amount <= 0) {

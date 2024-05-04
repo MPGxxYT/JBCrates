@@ -23,6 +23,10 @@ public class CrateManager {
     }
     for (File file : mainPath.listFiles()) {
       Crate crate = CrateCRUD.getCrate(file.getName().replace(".json", ""));
+      if (crate.getDescription().contains("§")) {
+        String string = crate.getDescription().replaceAll("§", "&");
+        crate.setDescription(string);
+      }
       crateList.add(crate);
     }
   }
@@ -215,15 +219,16 @@ public class CrateManager {
   }
 
   public static ItemStack generatePlaceCrateItemStack(Crate crate) {
-    ItemStackBuilder builder =
-        ItemStackBuilder.builder(Material.ENDER_CHEST)
-            .name(crate.getDisplayName())
-            .addLore("&7" + crate.getDescription())
-            .addLore("&7")
-            .addLore("&7Place anywhere at spawn unlock &e" + crate.getAmountToWin())
-            .addLore("&7of a total &e" + crate.getRewardsMap().size() + " &7possible rewards!")
-            .addLore("&7")
-            .addLore("&7Possible Rewards:");
+    ItemStackBuilder builder = ItemStackBuilder.builder(Material.ENDER_CHEST)
+        .name(crate.getDisplayName());
+    if (!crate.getDescription().isBlank()) {
+      builder.addLore("&7" + crate.getDescription());
+    }
+    builder.addLore("&7")
+        .addLore("&7Place anywhere at spawn unlock &e" + crate.getAmountToWin())
+        .addLore("&7of a total &e" + crate.getRewardsMap().size() + " &7possible rewards!")
+        .addLore("&7")
+        .addLore("&7Possible Rewards:");
     List<Component> crateRewardsText = CrateManager.getCrateRewardsText(crate, true);
     ItemStack crateItemStack = builder.addLore(crateRewardsText).build();
     NBTAPI.addNBT(crateItemStack, "crate_id", crate.getId());
