@@ -37,4 +37,4 @@ I will track my progress here and try to think of every possible task.
 * Add any input corrections and checks.
 * Check & fix regex's
 * No description then remove line //
-* Set up a Config for the plugin
+* Set up a Config for the plugin //
