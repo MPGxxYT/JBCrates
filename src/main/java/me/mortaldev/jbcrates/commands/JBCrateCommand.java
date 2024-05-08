@@ -35,7 +35,16 @@ public class JBCrateCommand {
             Main.getGuiManager().openGUI(new InitialCratesMenu(), player);
           }
           case 1 -> {
-            if (args[0].equalsIgnoreCase("give")) {
+            if (args[0].equalsIgnoreCase("reload")) {
+              if (player == null){
+                sender.sendMessage("Reloading config...");
+              } else {
+                sender.sendMessage(TextUtil.format("&eReloading config..."));
+              }
+              String reload = Main.getMainConfig().reload();
+              sender.sendMessage(reload);
+
+            } else if (args[0].equalsIgnoreCase("give")) {
               if (player == null){
                 sender.sendMessage("Player input a player.");
                 sender.sendMessage("/jbcrates give <player> <crate_id>");
@@ -111,15 +120,22 @@ public class JBCrateCommand {
           @NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
         ArrayList<String> list = new ArrayList<>();
         switch (args.length) {
-          case 1 -> list.add("give");
+          case 1 -> {
+            list.add("give");
+            list.add("reload");
+          }
           case 2 -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-              list.add(player.getName());
+            if (args[0].equalsIgnoreCase("give")) {
+              for (Player player : Bukkit.getOnlinePlayers()) {
+                list.add(player.getName());
+              }
             }
           }
           case 3 -> {
-            for (Crate crate : CrateManager.getCrates()) {
-              list.add(crate.getId());
+            if (args[0].equalsIgnoreCase("give")) {
+              for (Crate crate : CrateManager.getCrates()) {
+                list.add(crate.getId());
+              }
             }
           }
         }

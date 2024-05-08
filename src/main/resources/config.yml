@@ -1,0 +1,12 @@
+
+# Time in ticks between each crate placement. (1 second is 20 ticks)
+# Would not recommend anything shorter than 20s
+crateCooldown: 20000
+
+# All the worlds you want crates to be allowed opened in and their minimum y-level.
+# example.
+#worldWhitelist:
+#  spawn: 125
+#  world: 0
+worldWhitelist:
+  spawn: 125

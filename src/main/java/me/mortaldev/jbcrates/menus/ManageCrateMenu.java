@@ -10,6 +10,7 @@ import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -174,14 +175,15 @@ public class ManageCrateMenu extends InventoryGUI {
       event.setCancelled(true);
       Crate crate = setNamePromptMap.get(player).first();
       Bukkit.getScheduler().cancelTask(setNamePromptMap.remove(player).second());
-      Component formattedMessage = TextUtil.format(TextUtil.componentToString(event.message()));
-      crate.setDisplayName(formattedMessage);
+
+      String rewardString = event.originalMessage() instanceof TextComponent ? ((TextComponent) event.originalMessage()).content() : "";
+      Component formattedText = TextUtil.format(rewardString);
+
+      crate.setDisplayName(formattedText);
       CrateManager.updateCrate(crate.getId(), crate);
       player.sendMessage(TextUtil.format("&3Crate " + crate.getId() + " updated with name: "));
-      player.sendMessage(formattedMessage);
-      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
-        Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player);
-      });
+      player.sendMessage(formattedText);
+      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player));
     }
   }
 

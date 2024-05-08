@@ -2,6 +2,7 @@ package me.mortaldev.jbcrates;
 
 import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
+import me.mortaldev.jbcrates.configs.MainConfig;
 import me.mortaldev.jbcrates.listeners.OnCratePlaceEvent;
 import me.mortaldev.jbcrates.listeners.OnJoinRewardsReminderEvent;
 import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
@@ -23,9 +24,9 @@ public final class Main extends JavaPlugin {
 
   public static Main instance;
   public static GUIManager guiManager;
+  public static MainConfig mainConfig;
   static List<Location> crateLocationList = new ArrayList<>();
   private static final String LABEL = "JBCrates";
-  private static final String CRATE_PLACE_WORLD_NAME = "spawn";
 
   public void addCrateLocation(Location location) {
     crateLocationList.add(location);
@@ -35,9 +36,29 @@ public final class Main extends JavaPlugin {
     crateLocationList.remove(location);
   }
 
+  public static MainConfig getMainConfig() {
+    return mainConfig;
+  }
+
+  public static Main getInstance() {
+    return instance;
+  }
+
+  public static String getLabel() {
+    return LABEL;
+  }
+
+  public static GUIManager getGuiManager() {
+    return guiManager;
+  }
+
   @Override
   public void onEnable() {
     instance = this;
+
+    // Configs (must be first since a lot of things rely on the config)
+
+    mainConfig = new MainConfig();
 
     CrateProfileManager.loadCrateProfileMap();
     CrateManager.updateCratesList();
@@ -72,6 +93,8 @@ public final class Main extends JavaPlugin {
       getDataFolder().mkdir();
     }
 
+    // Commands
+
     new JBCrateCommand();
     new GetCrateRewardsCommand();
     // new LoreCommand();
@@ -95,20 +118,5 @@ public final class Main extends JavaPlugin {
     }
 
     CrateProfileManager.saveCrateProfileMap();
-  }
-
-  public static Main getInstance() {
-    return instance;
-  }
-
-  public static String getLabel() {
-    return LABEL;
-  }
-  public static String getCratePlaceWorldName() {
-    return CRATE_PLACE_WORLD_NAME;
-  }
-
-  public static GUIManager getGuiManager() {
-    return guiManager;
   }
 }

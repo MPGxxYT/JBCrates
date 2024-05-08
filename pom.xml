@@ -6,7 +6,7 @@
 
     <groupId>me.mortaldev</groupId>
     <artifactId>JBCrates</artifactId>
-    <version>1.3.1</version>
+    <version>1.4</version>
     <packaging>jar</packaging>
 
     <name>JBCrates</name>
@@ -14,7 +14,6 @@
     <description>Crates plugin for JailBreak on PrismForge</description>
     <properties>
         <jackson.version>2.17.0</jackson.version>
-        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -23,7 +22,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>16</source>
                     <target>16</target>
@@ -32,7 +31,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.5.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -55,6 +54,9 @@
                                     </includes>
                                 </filter>
                             </filters>
+<!--                            <transformers>-->
+<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer" />-->
+<!--                            </transformers>-->
                         </configuration>
                     </execution>
                 </executions>
@@ -67,6 +69,20 @@
             </resource>
         </resources>
     </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <repositories>
         <repository>
@@ -97,7 +113,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

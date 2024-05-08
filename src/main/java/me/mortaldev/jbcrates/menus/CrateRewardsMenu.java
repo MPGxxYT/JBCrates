@@ -10,6 +10,7 @@ import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackBuilder;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -182,7 +183,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
               Player player = (Player) event.getWhoClicked();
               if (event.getClick() == ClickType.RIGHT) {
                 Main.getGuiManager().openGUI(new RemoveCrateRewardMenu(crate, reward), player);
-              } else if (event.getClick() == ClickType.LEFT) {
+              } else if (event.getClick() == ClickType.LEFT) { // Change reward chance
                 new AnvilGUI.Builder()
                     .plugin(Main.getInstance())
                     .title("Reward Chance")
@@ -202,7 +203,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                           return Collections.emptyList();
                         })
                     .open(player);
-              } else if (event.getClick() == ClickType.MIDDLE) {
+              } else if (event.getClick() == ClickType.MIDDLE) { // Change reward name
                 player.getInventory().close();
                 player.sendMessage("");
                 player.sendMessage(
@@ -238,7 +239,10 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
       Crate crate = setRewardNamePromptMap.get(player).first();
       ItemStack itemStack = setRewardNamePromptMap.remove(player).second();
       Bukkit.getScheduler().cancelTask(taskMap.get(player));
-      Component formattedText = TextUtil.format(TextUtil.componentToString(event.message()));
+
+      String rewardString = event.originalMessage() instanceof TextComponent ? ((TextComponent) event.originalMessage()).content() : "";
+      Component formattedText = TextUtil.format(rewardString);
+
       crate.updateReward(itemStack, formattedText);
       CrateManager.updateCrate(crate.getId(), crate);
       player.sendMessage(
@@ -249,9 +253,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
       Bukkit.getScheduler()
           .scheduleSyncDelayedTask(
               Main.getInstance(),
-              () -> {
-                Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
-              });
+              () -> Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player));
     }
   }
 }

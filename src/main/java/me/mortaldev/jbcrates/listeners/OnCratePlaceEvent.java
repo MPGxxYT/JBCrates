@@ -5,10 +5,7 @@ import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateExecutor;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
-import me.mortaldev.jbcrates.utils.Cooldown;
-import me.mortaldev.jbcrates.utils.NBTAPI;
-import me.mortaldev.jbcrates.utils.TextUtil;
-import me.mortaldev.jbcrates.utils.Utils;
+import me.mortaldev.jbcrates.utils.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,9 +17,9 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-public class OnCratePlaceEvent implements Listener {
+import java.util.Map;
 
-  private static final int Y_LEVEL = 125;
+public class OnCratePlaceEvent implements Listener {
   public static final String CRATE_TAG = "crate_id";
   public static final Cooldown cooldown = new Cooldown();
 
@@ -40,6 +37,8 @@ public class OnCratePlaceEvent implements Listener {
     if (crateID == null) {
       return;
     }
+    Map<String, Double> worldWhitelistMap = Main.getMainConfig().getWorldWhitelistMap();
+    Long crateCooldown = Main.getMainConfig().getCrateCooldown();
     // CONFIRMED A CRATE
     if (!cooldown.isDone(player.getUniqueId())) {
       int timeLeft = cooldown.getTimeLeft(player.getUniqueId());
@@ -54,13 +53,18 @@ public class OnCratePlaceEvent implements Listener {
     }
     if (!location.clone().add(0, 1, 0).getBlock().getType().equals(Material.AIR) || !location.clone().add(0, 2, 0).getBlock().getType().equals(Material.AIR)) {
       event.setCancelled(true);
-      player.sendMessage(TextUtil.format("&cYou cannot place it here. Try somewhere else."));
+      player.sendMessage(TextUtil.format("&cYou cannot open it here. Try somewhere else."));
       return;
     }
-    if (location.y() < Y_LEVEL
-        || !location.getWorld().getName().equalsIgnoreCase(Main.getCratePlaceWorldName())) {
+    boolean isWrongWorld = true;
+    for (Map.Entry<String, Double> entry : worldWhitelistMap.entrySet()) {
+      if (location.getWorld().getName().equalsIgnoreCase(entry.getKey()) && location.getY() >= entry.getValue()) {
+        isWrongWorld = false;
+      }
+    }
+    if (isWrongWorld) {
       event.setCancelled(true);
-      player.sendMessage(TextUtil.format("&cYou must be at spawn to open this."));
+      player.sendMessage(TextUtil.format("&cYou cannot open it here. Try somewhere else."));
       return;
     }
     crate = CrateManager.getCrate(crateID);
@@ -91,6 +95,6 @@ public class OnCratePlaceEvent implements Listener {
       player.getInventory().setItem(hand, itemInHand);
     }
     new CrateExecutor(crate).execute(event.getBlock(), player);
-    cooldown.start(player.getUniqueId(), 20 * 1000L);
+    cooldown.start(player.getUniqueId(), crateCooldown);
   }
 }
