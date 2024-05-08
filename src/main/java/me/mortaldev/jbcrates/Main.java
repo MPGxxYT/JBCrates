@@ -56,6 +56,12 @@ public final class Main extends JavaPlugin {
   public void onEnable() {
     instance = this;
 
+    // DATA FOLDER
+
+    if (!getDataFolder().exists()) {
+      getDataFolder().mkdir();
+    }
+
     // Configs (must be first since a lot of things rely on the config)
 
     mainConfig = new MainConfig();
@@ -86,12 +92,6 @@ public final class Main extends JavaPlugin {
     Bukkit.getPluginManager().registerEvents(new ViewCratesMenu.AddCratePromptEvent(), this);
     Bukkit.getPluginManager().registerEvents(new ManageCrateMenu.SetCrateNamePromptEvent(), this);
     Bukkit.getPluginManager().registerEvents(new CrateRewardsMenu.SetRewardNamePrompt(), this);
-
-    // DATA FOLDER
-
-    if (!getDataFolder().exists()) {
-      getDataFolder().mkdir();
-    }
 
     // Commands
 
