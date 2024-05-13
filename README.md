@@ -32,6 +32,7 @@ I will track my progress here and try to think of every possible task.
 ## Extra
 [//] Completed
 
+* Add currency as a reward (Vault API)
 * Make it pause a little longer for the first placement. //
 * And extend the display end before disappearing. //
 * Add any input corrections and checks.
