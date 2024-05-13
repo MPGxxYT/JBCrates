@@ -6,6 +6,7 @@ import me.mortaldev.jbcrates.modules.animation.DefaultAnimation;
 import me.mortaldev.jbcrates.modules.profile.CrateProfile;
 import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
 import me.mortaldev.jbcrates.records.Pair;
+import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -110,11 +111,22 @@ public class CrateExecutor {
                   entry.getKey().teleport(location.clone().toCenterLocation().add(0, height, 0));
                   height += 0.75;
                 }
-                if (player.isOnline() && !CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
+                if (player.isOnline()
+                    && !CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
                   for (ItemStack itemStack : winningItems) {
-                      player.sendMessage(
-                          TextUtil.format(
-                              "&6You have won &f").append(crate.getRewardsDisplayMap().get(itemStack)).append(TextUtil.format("&6.")));
+                    player.sendMessage(
+                        TextUtil.format("&6You have won &f")
+                            .append(crate.getRewardsDisplayMap().get(itemStack))
+                            .append(TextUtil.format("&6.")));
+                    if (NBTAPI.hasNBT(itemStack, "commandReward")) {
+                      String commandReward = NBTAPI.getNBT(itemStack, "commandReward");
+                      if (commandReward.startsWith("/")) {
+                        commandReward = commandReward.replaceFirst("/", "");
+                      }
+                      commandReward = commandReward.replaceAll("%player%", player.getName());
+                      Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandReward);
+                      crateProfile.removeItem(itemStack);
+                    } else {
                       if (Utils.canInventoryHold(player.getInventory(), 1)) {
                         player.getInventory().addItem(itemStack);
                         crateProfile.removeItem(itemStack);
@@ -123,13 +135,14 @@ public class CrateExecutor {
                             TextUtil.format(
                                 "&cYour inventory was full. Reward added to /getCrateRewards."));
                       }
-                      if (!crateProfile.getItemList().isEmpty()) {
-                        CrateProfileManager.updateCrateProfile(crateProfile);
-                      } else {
-                        CrateProfileManager.removeCrateProfile(crateProfile);
-                      }
+                    }
+                    if (!crateProfile.getItemList().isEmpty()) {
+                      CrateProfileManager.updateCrateProfile(crateProfile);
+                    } else {
+                      CrateProfileManager.removeCrateProfile(crateProfile);
                     }
                   }
+                }
                 CrateProfileManager.removeFromCrateActiveList(player.getUniqueId());
                 if (CrateProfileManager.getWasOfflineList().contains(player.getUniqueId())) {
                   CrateProfileManager.removeFromWasOfflineList(player.getUniqueId());

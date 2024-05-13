@@ -19,23 +19,22 @@ Perm: jbcrates.admin
 `/jbcrates give <player> <crate_id>` Gives the input player a crate based on the id.
 
 ## To-Do
-I will track my progress here and try to think of every possible task.
-- [ ] Create Animation System
+I will track my progress here and try to think of every possible task. 
+
+Features
+- [X] Command Reward Item
+- [ ] Make Reward Display Sorted
+- [ ] Disable & Enable a Crate 
+- [ ] Convert data storage to SQLite
+- [ ] Create Animation System (Multiple Animations & maybe custom animation maker)
   - [X] Add Default Animation
-- [ ] Clean Up & Refactor
-- [ ] Bugs
+
+Clean Up & Refactor
+- [ ] Add any input corrections and checks.
+- [ ] Check & fix regex's
+
+Bugs
   - [ ] Sometimes when its super laggy, rewards list fails
-  - [ ] You cannot pick up crates when dropping them. (skript conflict?)
-- [ ] Possible Additions
-  - [ ] Lore & Name updating for crates.
 
-## Extra
-[//] Completed
-
-* Add currency as a reward (Vault API)
-* Make it pause a little longer for the first placement. //
-* And extend the display end before disappearing. //
-* Add any input corrections and checks.
-* Check & fix regex's
-* No description then remove line //
-* Set up a Config for the plugin //
+Possible Additions
+- [ ] Lore & Name updating for crates.

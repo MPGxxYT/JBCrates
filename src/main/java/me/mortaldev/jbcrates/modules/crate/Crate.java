@@ -29,7 +29,7 @@ public class Crate {
     String formattedName = CrateManager.stringToIDFormat(TextUtil.componentToString(displayName));
     this.id = formattedName;
 
-    // Adds numbers to the ID based on if its taken already.
+    // Adds numbers to the ID if its taken already.
     if (CrateManager.crateByIDExists(this.id)) {
       int idCount = CrateManager.crateByIDCount(this.id);
       this.id = formattedName + "_" + idCount;
@@ -86,8 +86,14 @@ public class Crate {
   public Map<ItemStack, Component> getRewardsDisplayMap() {
     Map<ItemStack, Component> convertedMap = new HashMap<>();
     for (Map.Entry<String, String> entry : rewardsDisplayMap.entrySet()) {
-      convertedMap.put(
-          decodeItemStack(entry.getKey()), TextUtil.deserializeComponent(entry.getValue()));
+      Component display;
+      ItemStack itemStack = decodeItemStack(entry.getKey());
+      if (entry.getValue() == null) {
+        display = fixRewardDisplay(itemStack);
+      } else {
+        display = TextUtil.deserializeComponent(entry.getValue());
+      }
+      convertedMap.put(itemStack, display);
     }
     return convertedMap;
   }
@@ -147,7 +153,23 @@ public class Crate {
   }
 
   public Component getRewardDisplay(ItemStack itemStack) {
-    return TextUtil.deserializeComponent(rewardsDisplayMap.get(encodeItemStack(itemStack)));
+    String encodedReward = encodeItemStack(itemStack);
+    String rewardDisplay = rewardsDisplayMap.get(encodedReward);
+    if (rewardDisplay == null) {
+      return fixRewardDisplay(itemStack);
+    }
+    return TextUtil.deserializeComponent(rewardDisplay);
+  }
+
+  private Component fixRewardDisplay(ItemStack itemStack){
+    if (itemStack.getItemMeta().hasDisplayName()) {
+      Component component = itemStack.getItemMeta().displayName();
+      updateReward(itemStack, component);
+      return component;
+    }
+    Component component = TextUtil.format("&f" + Utils.itemName(itemStack.clone()));
+    updateReward(itemStack, component);
+    return component;
   }
 
   public void addReward(ItemStack reward, Double probability, Component display) {
@@ -163,6 +185,20 @@ public class Crate {
       this.rewardsMap.remove(encodedItemStack);
       this.rewardsDisplayMap.remove(encodedItemStack);
     }
+  }
+
+  public void updateReward(ItemStack reward, ItemStack replacement) {
+    String encodedReward = encodeItemStack(reward);
+    String encodedReplacement = encodeItemStack(replacement);
+
+    Double v = this.rewardsMap.get(encodedReward);
+    String string = this.rewardsDisplayMap.get(encodedReward);
+
+    this.rewardsMap.remove(encodedReward);
+    this.rewardsDisplayMap.remove(encodedReward);
+
+    this.rewardsMap.put(encodedReplacement, v);
+    this.rewardsDisplayMap.put(encodedReplacement, string);
   }
 
   public void updateReward(ItemStack reward, Double newProbability) {

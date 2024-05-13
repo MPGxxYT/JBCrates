@@ -41,8 +41,10 @@ public class DefaultAnimation {
         new AtomicReference<>(Math.toRadians(45)); // Tilt angle (45 degrees in this case)
 
     ItemStack clonedItemStack = itemStack.clone();
-    Component amountComponent = TextUtil.format(" &f&lx" + clonedItemStack.getAmount());
-    display = display.append(amountComponent);
+    if (clonedItemStack.getAmount() > 1) {
+      Component amountComponent = TextUtil.format(" &f&lx" + clonedItemStack.getAmount());
+      display = display.append(amountComponent);
+    }
     clonedItemStack.setAmount(1);
     NBTAPI.addNBT(clonedItemStack, "UUID", UUID.randomUUID().toString());
 

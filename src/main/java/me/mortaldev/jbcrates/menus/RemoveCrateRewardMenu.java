@@ -39,7 +39,7 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
     this.addButton(11, cancelButton());
 
     this.getInventory()
-        .setItem(13, CrateManager.generateRewardItemStack(reward.getKey().clone(), reward.getValue(), crate.getRewardDisplay(reward.getKey())));
+        .setItem(13, CrateManager.generateDisplayRewardItemStack(reward.getKey(), reward.getValue(), crate.getRewardDisplay(reward.getKey())));
 
     this.addButton(15, confirmButton());
     this.addButton(16, confirmButton());
@@ -74,7 +74,7 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new MoreOptionsRewardMenu(crate, reward), player);
             });
   }
 }

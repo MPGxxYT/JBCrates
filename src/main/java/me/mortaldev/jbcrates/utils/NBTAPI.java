@@ -41,4 +41,23 @@ public class NBTAPI {
     pdc.set(namespacedKey, PersistentDataType.STRING, value);
     item.setItemMeta(meta);
   }
+
+  public static void removeNBT(@NotNull ItemStack item, String key) {
+    Objects.requireNonNull(MAIN_INSTANCE, "JeffLib hasn't been initialized.");
+    Objects.requireNonNull(item, "item must not be null");
+    if (!item.hasItemMeta()) return;
+    ItemMeta meta = item.getItemMeta();
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.remove(new NamespacedKey(MAIN_INSTANCE, key));
+    item.setItemMeta(meta);
+  }
+
+  public static boolean hasNBT(@NotNull ItemStack item, String key) {
+    Objects.requireNonNull(MAIN_INSTANCE, "JeffLib hasn't been initialized.");
+    Objects.requireNonNull(item, "item must not be null");
+    if (!item.hasItemMeta()) return false;
+    ItemMeta meta = item.getItemMeta();
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    return pdc.has(new NamespacedKey(MAIN_INSTANCE, key), PersistentDataType.STRING);
+  }
 }

@@ -174,7 +174,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     return new InventoryButton()
         .creator(
             player ->
-                CrateManager.generateRewardItemStack(
+                CrateManager.generateEditingRewardItemStack(
                     reward.getKey().clone(),
                     reward.getValue(),
                     crate.getRewardDisplay(reward.getKey())))
@@ -182,7 +182,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
             event -> {
               Player player = (Player) event.getWhoClicked();
               if (event.getClick() == ClickType.RIGHT) {
-                Main.getGuiManager().openGUI(new RemoveCrateRewardMenu(crate, reward), player);
+                Main.getGuiManager().openGUI(new MoreOptionsRewardMenu(crate, reward), player);
               } else if (event.getClick() == ClickType.LEFT) { // Change reward chance
                 new AnvilGUI.Builder()
                     .plugin(Main.getInstance())

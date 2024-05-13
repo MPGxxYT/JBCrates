@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+// This whole class needs to be reorganized and updated.
+
 public class CrateManager {
   static List<Crate> crateList;
 
@@ -189,22 +191,55 @@ public class CrateManager {
     crate.setRewardsMap(rewardsMap);
   }
 
-  //
-
-  public static ItemStack generateRewardItemStack(
+  public static ItemStack generateEditingRewardItemStack(
       ItemStack itemStack, Double chance, Component display) {
 
-    ItemStackBuilder.builder(itemStack)
-        .addLore("&7")
-        .addLore(TextUtil.format("&7Display: ").append(display))
-        .addLore("&7")
-        .addLore("&3" + chance + "% Chance")
-        .addLore("&7")
+    ItemStack clonedItemStack = itemStack.clone();
+    ItemStackBuilder itemStackBuilder =
+        ItemStackBuilder.builder(clonedItemStack)
+            .addLore("&7")
+            .addLore(TextUtil.format("&7Display: ").append(display))
+            .addLore("&7")
+            .addLore("&3" + chance + "% Chance")
+            .addLore("&7");
+
+    String commandReward = NBTAPI.getNBT(clonedItemStack, "commandReward");
+    if (commandReward != null) {
+      if (!commandReward.startsWith("/")) {
+        commandReward = "/" + commandReward;
+      }
+      itemStackBuilder.addLore("&3Command: " + commandReward).addLore("&7");
+    }
+
+    itemStackBuilder
         .addLore("&e[Left Click to change chance]")
         .addLore("&e[Middle Click to change display name]")
-        .addLore("&e[Right Click to remove reward]")
-        .build();
-    return itemStack;
+        .addLore("&e[Right Click for more options]");
+
+    return itemStackBuilder.build();
+  }
+
+  public static ItemStack generateDisplayRewardItemStack(
+      ItemStack itemStack, Double chance, Component display) {
+
+    ItemStack clonedItemStack = itemStack.clone();
+    ItemStackBuilder itemStackBuilder =
+        ItemStackBuilder.builder(clonedItemStack)
+            .addLore("&7")
+            .addLore(TextUtil.format("&7Display: ").append(display))
+            .addLore("&7")
+            .addLore("&3" + chance + "% Chance")
+            .addLore("&7");
+
+    String commandReward = NBTAPI.getNBT(clonedItemStack, "commandReward");
+    if (commandReward != null) {
+      if (!commandReward.startsWith("/")) {
+        commandReward = "/" + commandReward;
+      }
+      itemStackBuilder.addLore("&3Command: " + commandReward).addLore("&7");
+    }
+
+    return itemStackBuilder.build();
   }
 
   public static ItemStack generateDisplayCrateItemStack(Crate crate) {
@@ -219,12 +254,13 @@ public class CrateManager {
   }
 
   public static ItemStack generatePlaceCrateItemStack(Crate crate) {
-    ItemStackBuilder builder = ItemStackBuilder.builder(Material.ENDER_CHEST)
-        .name(crate.getDisplayName());
+    ItemStackBuilder builder =
+        ItemStackBuilder.builder(Material.ENDER_CHEST).name(crate.getDisplayName());
     if (!crate.getDescription().isBlank()) {
       builder.addLore("&7" + crate.getDescription());
     }
-    builder.addLore("&7")
+    builder
+        .addLore("&7")
         .addLore("&7Place anywhere at spawn unlock &e" + crate.getAmountToWin())
         .addLore("&7of a total &e" + crate.getRewardsMap().size() + " &7possible rewards!")
         .addLore("&7")
