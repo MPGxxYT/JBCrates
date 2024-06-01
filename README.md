@@ -36,6 +36,7 @@ Clean Up & Refactor
 
 Bugs
   - [ ] Sometimes when its super laggy, rewards list fails
+  - [ ] CrateRewards menu is not large enough, make expanding (pages not necessary)
 
 Possible Additions
 - [ ] Lore & Name updating for crates.
