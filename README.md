@@ -16,6 +16,8 @@ Perm: jbcrates.admin
 
 `/jbcrates` Brings up the menu for managing crates.
 
+`/jbcrates reload` Will reload the config
+
 `/jbcrates give <player> <crate_id>` Gives the input player a crate based on the id.
 
 ## To-Do
