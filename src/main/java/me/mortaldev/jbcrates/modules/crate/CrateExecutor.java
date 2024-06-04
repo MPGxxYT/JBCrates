@@ -68,7 +68,7 @@ public class CrateExecutor {
   void runMainAnimation() {
     final int[] i = {1};
     long startMulti = (6 * 20) / crate.getRewardsMap().size();
-    Map<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
+    LinkedHashMap<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
     for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
       boolean winning = winningItems.contains(entry.getKey());
       Bukkit.getScheduler()

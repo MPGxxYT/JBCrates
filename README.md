@@ -24,9 +24,7 @@ Perm: jbcrates.admin
 I will track my progress here and try to think of every possible task. 
 
 Features
-- [X] Command Reward Item
-- [X] Make editing crate rewards itemstack have a "...5 more" for if theres more.
-- [ ] Make Reward Display Sorted (add options and maybe shift left or right to move)
+- [X] Make Reward Display Sorted (add options and maybe shift left or right to move)
 - [ ] Disable & Enable a Crate 
 - [ ] Maybe convert data storage to SQLite
 - [ ] Create Animation System (Multiple Animations & maybe custom animation maker)
@@ -39,7 +37,6 @@ Clean Up & Refactor
 
 Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)
-  - [X] CrateRewards menu is not large enough, make expanding (pages not necessary)
 
 Possible Additions
 - [ ] Lore & Name updating for crates.

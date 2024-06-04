@@ -3,6 +3,7 @@ package me.mortaldev.jbcrates.modules.crate;
 import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // This whole class needs to be reorganized and updated.
 
@@ -119,7 +121,7 @@ public class CrateManager {
       rewardsText.add(TextUtil.format("&cNo Rewards Inside."));
     } else {
       int j = 0;
-      Map<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
+      LinkedHashMap<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
       for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
         if (j <= maxItemsListed) {
           j++;
@@ -145,7 +147,7 @@ public class CrateManager {
       }
       int itemsLeft = rewardsDisplayMap.size() - maxItemsListed;
       if (itemsLeft > 0) {
-        rewardsText.add(TextUtil.format("&7..."+itemsLeft+" more"));
+        rewardsText.add(TextUtil.format("&7..." + itemsLeft + " more"));
       }
     }
     return rewardsText;
@@ -219,7 +221,9 @@ public class CrateManager {
     itemStackHelper
         .addLore("&e[Left Click to change chance]")
         .addLore("&e[Middle Click to change display name]")
-        .addLore("&e[Right Click for more options]");
+        .addLore("&e[Right Click for more options]")
+        .addLore(" ")
+        .addLore("&f <-- &3[SHIFT + LC] &f&l| &3[SHIFT + RC] &f-->");
 
     return itemStackHelper.build();
   }
@@ -274,5 +278,116 @@ public class CrateManager {
     ItemStack crateItemStack = builder.addLore(crateRewardsText).build();
     NBTAPI.addNBT(crateItemStack, "crate_id", crate.getId());
     return crateItemStack;
+  }
+
+  public static LinkedHashMap<ItemStack, Component> sortRewards(
+      SortBy sortBy, Order order, Crate crate) {
+
+    if (sortBy.equals(SortBy.DISPLAY_NAME)){
+      LinkedHashMap<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
+      Comparator<Map.Entry<ItemStack, Component>> comparator =
+          Comparator.comparing(e -> TextUtil.componentToString(e.getValue()));
+      comparator = adjustComparatorOrder(order, comparator);
+
+      return rewardsDisplayMap.entrySet().stream()
+          .sorted(comparator)
+          .collect(
+              Collectors.toMap(
+                  Map.Entry::getKey,
+                  Map.Entry::getValue,
+                  (oldValue, newValue) -> oldValue,
+                  LinkedHashMap::new));
+    } else if (sortBy.equals(SortBy.CUSTOM)){
+        LinkedHashMap<ItemStack, Component> reversedMap = new LinkedHashMap<>();
+        new LinkedList<>(crate.getRewardsDisplayMap().entrySet())
+            .descendingIterator()
+            .forEachRemaining(entry -> reversedMap.put(entry.getKey(), entry.getValue()));
+        return reversedMap;
+    } else {
+      Comparator<Map.Entry<ItemStack, Double>> comparator = getComparatorForNonDisplayNameSort(sortBy);
+      comparator = adjustComparatorOrder(order, comparator);
+      Map<ItemStack, Double> rewardsMap = crate.getRewardsMap();
+
+      return rewardsMap.entrySet().stream()
+          .sorted(comparator)
+          .collect(Collectors.toMap(
+              Map.Entry::getKey,
+              entry -> crate.getRewardDisplay(entry.getKey()),
+              (oldValue, newValue) -> oldValue,
+              LinkedHashMap::new));
+    }
+  }
+
+  private static <T> Comparator<Map.Entry<ItemStack, T>> adjustComparatorOrder(Order order, Comparator<Map.Entry<ItemStack, T>> comparator) {
+    if (order.equals(Order.DESCENDING)) {
+      return comparator.reversed();
+    }
+    return comparator;
+  }
+
+  private static Comparator<Map.Entry<ItemStack, Double>> getComparatorForNonDisplayNameSort(SortBy sortBy) {
+    return switch (sortBy) {
+      case CHANCE -> Map.Entry.comparingByValue();
+      case ITEM -> Comparator.comparing(e -> Utils.itemName(e.getKey()));
+      default -> (entry1, entry2) -> 0;
+    };
+  }
+
+  public enum Order {
+    ASCENDING("Ascending"),
+    DESCENDING("Descending");
+
+    private final String name;
+
+    Order(String name) {
+      this.name = name;
+    }
+
+    public static Order flip(Order order){
+      switch (order) {
+        case ASCENDING -> {
+          return DESCENDING;
+        }
+        case DESCENDING -> {
+          return ASCENDING;
+        }
+      }
+      return ASCENDING;
+    }
+
+    public String getName() {
+      return name;
+    }
+  }
+
+  public enum SortBy {
+    CHANCE("Chance"),
+    DISPLAY_NAME("Display Name"),
+    ITEM("Item Name"),
+    CUSTOM("Custom");
+
+    private final String name;
+
+    SortBy(String name) {
+      this.name = name;
+    }
+
+    public static SortBy next(SortBy sortBy){
+      for (int i = 0; i < values().length; i++) {
+        SortBy value = values()[i];
+        if (value == sortBy) {
+          if (i+1 >= values().length) {
+            return values()[0];
+          } else {
+            return values()[i+1];
+          }
+        }
+      }
+      return values()[0];
+    }
+
+    public String getName() {
+      return name;
+    }
   }
 }

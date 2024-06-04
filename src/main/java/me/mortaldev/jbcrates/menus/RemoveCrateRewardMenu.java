@@ -63,7 +63,7 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
               crate.removeReward(reward.getKey());
               CrateManager.balanceRewardChances(crate);
               CrateManager.updateCrate(crate.getId(), crate);
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, crate.getOrder()), player);
             });
   }
 
