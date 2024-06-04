@@ -23,6 +23,7 @@ I will track my progress here and try to think of every possible task.
 
 Features
 - [X] Command Reward Item
+- [ ] Make editing crate rewards itemstack have a "...5 more" for if theres more.
 - [ ] Make Reward Display Sorted
 - [ ] Disable & Enable a Crate 
 - [ ] Convert data storage to SQLite
@@ -35,6 +36,7 @@ Clean Up & Refactor
 
 Bugs
   - [ ] Sometimes when its super laggy, rewards list fails
+  - [ ] CrateRewards menu is not large enough, make expanding (pages not necessary)
 
 Possible Additions
 - [ ] Lore & Name updating for crates.
