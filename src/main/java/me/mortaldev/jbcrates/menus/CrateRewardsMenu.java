@@ -9,6 +9,7 @@ import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
 import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -39,8 +40,12 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
 
   @Override
   protected Inventory createInventory() {
-    // will have it scale based on amount of rewards
-    return Bukkit.createInventory(null, 3 * 9, TextUtil.format("&3&lCrate Rewards"));
+    return Bukkit.createInventory(null, inventorySize() * 9, TextUtil.format("&3&lCrate Rewards"));
+  }
+
+  private int inventorySize() {
+    double size = ((double) crate.getRewardsMap().size() / 9) + 1;
+    return Utils.clamp((int) Math.ceil(size), 3, 6);
   }
 
   @Override
@@ -52,17 +57,18 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     }
     ItemStack whiteGlass =
         ItemStackHelper.builder(Material.WHITE_STAINED_GLASS_PANE).name("&7").build();
-    this.getInventory().setItem(19, whiteGlass);
-    this.getInventory().setItem(20, whiteGlass);
-    this.getInventory().setItem(21, whiteGlass);
-    this.getInventory().setItem(23, whiteGlass);
-    this.getInventory().setItem(24, whiteGlass);
-    this.getInventory().setItem(25, whiteGlass);
-    this.getInventory().setItem(26, whiteGlass);
-    addButton(24, adjustAmountToWin());
-    addButton(22, addRewardButton());
-    addButton(20, balanceRewardChancesButton());
-    addButton(18, backButton());
+    int adjustSlot = (inventorySize() - 3) * 9;
+    this.getInventory().setItem(19 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(20 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(21 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(23 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(24 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(25 + adjustSlot, whiteGlass);
+    this.getInventory().setItem(26 + adjustSlot, whiteGlass);
+    addButton(24 + adjustSlot, adjustAmountToWin());
+    addButton(22 + adjustSlot, addRewardButton());
+    addButton(20 + adjustSlot, balanceRewardChancesButton());
+    addButton(18 + adjustSlot, backButton());
     super.allowBottomInventoryClick(true);
     super.decorate(player);
   }
@@ -209,7 +215,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                 player.getInventory().close();
                 player.sendMessage("");
                 player.sendMessage(
-                    TextUtil.format("&7(Lasts 20s) &3Enter the new name for the crate:"));
+                    TextUtil.format("&7(Lasts 20s) &3Enter the new name for the reward:"));
                 player.sendMessage("");
                 setRewardNamePromptMap.put(player, new Pair<>(crate, reward.getKey()));
                 taskMap.put(
@@ -239,7 +245,10 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
       ItemStack itemStack = setRewardNamePromptMap.remove(player).second();
       Bukkit.getScheduler().cancelTask(taskMap.get(player));
 
-      String rewardString = event.originalMessage() instanceof TextComponent ? ((TextComponent) event.originalMessage()).content() : "";
+      String rewardString =
+          event.originalMessage() instanceof TextComponent
+              ? ((TextComponent) event.originalMessage()).content()
+              : "";
       Component formattedText = TextUtil.format(rewardString);
 
       crate.updateReward(itemStack, formattedText);

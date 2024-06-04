@@ -22,19 +22,12 @@ import java.util.*;
 
 public final class Main extends JavaPlugin {
 
+  private static final String LABEL = "JBCrates";
   public static Main instance;
   public static GUIManager guiManager;
   public static MainConfig mainConfig;
+//  static HashSet<String> dependencies = new HashSet<>();
   static List<Location> crateLocationList = new ArrayList<>();
-  private static final String LABEL = "JBCrates";
-
-  public void addCrateLocation(Location location) {
-    crateLocationList.add(location);
-  }
-
-  public void removeCrateLocation(Location location) {
-    crateLocationList.remove(location);
-  }
 
   public static MainConfig getMainConfig() {
     return mainConfig;
@@ -50,6 +43,18 @@ public final class Main extends JavaPlugin {
 
   public static GUIManager getGuiManager() {
     return guiManager;
+  }
+
+  public static void log(String message) {
+    Bukkit.getLogger().info("[" + Main.getLabel() + "] " + message);
+  }
+
+  public void addCrateLocation(Location location) {
+    crateLocationList.add(location);
+  }
+
+  public void removeCrateLocation(Location location) {
+    crateLocationList.remove(location);
   }
 
   @Override
@@ -71,19 +76,20 @@ public final class Main extends JavaPlugin {
 
     // DEPENDENCIES
 
-    //        if (Bukkit.getPluginManager().getPlugin("DecentHolograms") == null){
-    //            getLogger().warning("Could not find DecentHolograms! This plugin is required.");
-    //            Bukkit.getPluginManager().disablePlugin(this);
-    //            return;
-    //        }
+//    for (String plugin : dependencies) {
+//      if (Bukkit.getPluginManager().getPlugin(plugin) == null) {
+//        getLogger().warning("Could not find " + plugin + "! This plugin is required.");
+//        Bukkit.getPluginManager().disablePlugin(this);
+//        return;
+//      }
+//    }
 
-    // GUIs
+    // GUI Manager
     guiManager = new GUIManager();
-
     GUIListener guiListener = new GUIListener(guiManager);
     Bukkit.getPluginManager().registerEvents(guiListener, this);
 
-    // Listeners
+    // Listeners/Events
 
     Bukkit.getPluginManager().registerEvents(new OnCratePlaceEvent(), this);
     Bukkit.getPluginManager().registerEvents(new OnJoinRewardsReminderEvent(), this);
@@ -97,8 +103,6 @@ public final class Main extends JavaPlugin {
 
     new JBCrateCommand();
     new GetCrateRewardsCommand();
-    // new LoreCommand();
-    // new RenameCommand();
 
     getLogger().info(LABEL + " Enabled");
   }

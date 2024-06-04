@@ -119,7 +119,8 @@ public class CrateManager {
       rewardsText.add(TextUtil.format("&cNo Rewards Inside."));
     } else {
       int j = 0;
-      for (Map.Entry<ItemStack, Component> entry : crate.getRewardsDisplayMap().entrySet()) {
+      Map<ItemStack, Component> rewardsDisplayMap = crate.getRewardsDisplayMap();
+      for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
         if (j <= maxItemsListed) {
           j++;
           ItemStack itemStack = entry.getKey();
@@ -141,6 +142,10 @@ public class CrateManager {
         } else {
           break;
         }
+      }
+      int itemsLeft = rewardsDisplayMap.size() - maxItemsListed;
+      if (itemsLeft > 0) {
+        rewardsText.add(TextUtil.format("&7..."+itemsLeft+" more"));
       }
     }
     return rewardsText;
