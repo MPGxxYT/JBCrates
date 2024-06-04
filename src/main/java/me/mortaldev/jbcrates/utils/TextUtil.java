@@ -19,7 +19,7 @@ public class TextUtil {
    * @param string the string to be formatted
    * @return the formatted string with special characters replaced by underscores
    */
-  public static String fileFormat(String string){
+  public static String fileFormat(String string) {
     return string.replaceAll("[^a-zA-Z0-9_-]", "_");
   }
 
@@ -59,11 +59,11 @@ public class TextUtil {
    * @param component The Component object to serialize.
    * @return The serialized JSON representation of the Component object.
    */
-  public static String serializeComponent(Component component){
+  public static String serializeComponent(Component component) {
     return GsonComponentSerializer.gson().serialize(component);
   }
 
-  public static String serializeComponent(String string){
+  public static String serializeComponent(String string) {
     return serializeComponent(format(string));
   }
 
@@ -73,7 +73,7 @@ public class TextUtil {
    * @param string The JSON string to deserialize.
    * @return The deserialized Component object.
    */
-  public static Component deserializeComponent(String string){
+  public static Component deserializeComponent(String string) {
     return GsonComponentSerializer.gson().deserialize(string);
   }
 
@@ -83,7 +83,7 @@ public class TextUtil {
    * @param component The Component object to convert.
    * @return The plain text string representation of the Component object.
    */
-  public static String componentToString(Component component){
+  public static String componentToString(Component component) {
     return PlainTextComponentSerializer.plainText().serialize(component);
   }
 
@@ -115,11 +115,132 @@ public class TextUtil {
         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
   }
 
+  /**
+   * Removes formatting tags from a Component object and returns the resulting plain text string.
+   *
+   * @param component the Component object to remove the formatting tags from
+   * @return the plain text string representation of the Component object without formatting tags
+   */
+  public static String deformat(Component component) {
+    String str = MiniMessage.miniMessage().serialize(component).replaceFirst("<!italic>", "");
+    // Bukkit.broadcastMessage(str);
+    StringBuilder stringBuilder = new StringBuilder(str);
+    stringBuilder.replace(0, stringBuilder.length(), str.replace("<newline>", "&nl"));
+
+    // Replace denied color format references
+    for (Colors color : Colors.values()) {
+      String valueEnd = "</" + color.getValue() + ">";
+      String offValue = "<!" + color.getValue() + ">";
+      String offValueEnd = "</!" + color.getValue() + ">";
+      stringBuilder.replace(
+          0,
+          stringBuilder.length(),
+          stringBuilder
+              .toString()
+              .replace(offValue, "")
+              .replace(offValueEnd, "")
+              .replace(valueEnd, ""));
+    }
+
+    // Replace color format references
+    for (Colors color : Colors.values()) {
+      String key = "&" + color.getKey();
+      String value = "<" + color.getValue() + ">";
+      stringBuilder.replace(
+          0, stringBuilder.length(), stringBuilder.toString().replace(value, key));
+    }
+
+    // Replace denied decoration format references
+    for (Decorations decoration : Decorations.values()) {
+      String valueEnd = "</" + decoration.getValue() + ">";
+      String offValue = "<!" + decoration.getValue() + ">";
+      String offValueEnd = "</!" + decoration.getValue() + ">";
+      stringBuilder.replace(
+          0,
+          stringBuilder.length(),
+          stringBuilder
+              .toString()
+              .replace(offValue, "")
+              .replace(offValueEnd, "")
+              .replace(valueEnd, ""));
+    }
+
+    // Replace decoration format references
+    for (Decorations decoration : Decorations.values()) {
+      String key = "&" + decoration.getKey();
+      String value = "<" + decoration.getValue() + ">";
+      stringBuilder.replace(
+          0, stringBuilder.length(), stringBuilder.toString().replace(value, key));
+    }
+
+    // Move decorations to correct position
+    for (Decorations decoration : Decorations.values()) {
+      String key = "&" + decoration.getKey();
+      if (stringContainsAhead(stringBuilder, key, "<#")) {
+        stringBuilder = moveCharsForward(stringBuilder, key, 9);
+      } else {
+        stringBuilder = moveCharsForward(stringBuilder, key, 2);
+      }
+    }
+
+    // Parse and replace HTML-style hexadecimal color references.
+    Pattern hexPattern = Pattern.compile("<#(.{6})>");
+    Matcher hexMatcher = hexPattern.matcher(str);
+    // <#ffffff> to &#ffffff
+    while (hexMatcher.find()) {
+      String hexCode = hexMatcher.group(1);
+      String key = "&#" + hexCode;
+      String value = "<#" + hexCode + ">";
+      String valueEnd = "</#" + hexCode + ">";
+      stringBuilder.replace(
+          0,
+          stringBuilder.length(),
+          stringBuilder.toString().replace(value, key).replace(valueEnd, ""));
+    }
+
+    return stringBuilder.toString();
+  }
+
+  private static boolean stringContainsAhead(StringBuilder str, String target, String special) {
+    int i = 0;
+    while (i < str.length()) {
+      int specialIndexSize = i + target.length() + special.length();
+      if (specialIndexSize <= str.length()
+          && str.substring(i, target.length() + i).equals(target)
+          && str.substring(i + target.length(), specialIndexSize).equals(special)) {
+        return true;
+      }
+      i++;
+    }
+    return false;
+  }
+
+  private static StringBuilder moveCharsForward(StringBuilder str, String target, int steps) {
+    StringBuilder newStr = new StringBuilder();
+    int i = 0;
+    while (i < str.length()) {
+      if (i <= str.length() - target.length()
+          && str.substring(i, i + target.length()).equals(target)) {
+        if (i + target.length() + steps <= str.length()) {
+          newStr.append(str, i + target.length(), i + target.length() + steps);
+          newStr.append(target);
+          i += target.length() + steps;
+        } else {
+          newStr.append(target);
+          i += target.length();
+        }
+      } else {
+        newStr.append(str.charAt(i++));
+      }
+    }
+    return newStr;
+  }
+
   // Welcome Home##My love!##sgt:/home ##ttp:Click Here
   // [EXTRA TEXT ] [ INPUT] [PAR][ARG  ] [PAR][   ARG  ]
   //             ||        ||          ||
 
-   private static String asParam(String str) {
+  private static String asParam(String str) {
     if (str == null) {
       throw new IllegalArgumentException("Input string cannot be null.");
     }
@@ -344,11 +465,11 @@ public class TextUtil {
   }
 
   private enum Decorations {
-    BOLD("l", "b"),
-    ITALIC("o", "em"),
-    UNDERLINE("n", "u"),
-    STRIKETHROUGH("m", "st"),
-    OBFUSCATED("k", "obf"),
+    BOLD("l", "bold"),
+    ITALIC("o", "italic"),
+    UNDERLINE("n", "underlined"),
+    STRIKETHROUGH("m", "strikethrough"),
+    OBFUSCATED("k", "obfuscated"),
     RESET("r", "reset");
 
     private final String key;

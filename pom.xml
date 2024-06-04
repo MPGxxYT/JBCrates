@@ -6,7 +6,7 @@
 
     <groupId>me.mortaldev</groupId>
     <artifactId>JBCrates</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
     <packaging>jar</packaging>
 
     <name>JBCrates</name>

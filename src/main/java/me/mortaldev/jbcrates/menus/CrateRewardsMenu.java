@@ -12,6 +12,8 @@ import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -26,6 +28,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CrateRewardsMenu extends InventoryGUI implements Listener {
@@ -33,9 +36,11 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
   public static Map<Player, Pair<Crate, ItemStack>> setRewardNamePromptMap = new HashMap<>();
   public static Map<Player, Integer> taskMap = new HashMap<>();
   private final Crate crate;
+  private CrateManager.Order order;
 
-  public CrateRewardsMenu(Crate crate) {
+  public CrateRewardsMenu(Crate crate, CrateManager.Order order) {
     this.crate = crate;
+    this.order = order;
   }
 
   @Override
@@ -51,8 +56,8 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
   @Override
   public void decorate(Player player) {
     int i = 0;
-    for (Map.Entry<ItemStack, Double> entry : crate.getRewardsMap().entrySet()) {
-      this.addButton(i, rewardButton(entry));
+    for (Map.Entry<ItemStack, Component> entry : crate.getRewardsDisplayMap().entrySet()) {
+      this.addButton(i, rewardButton(crate.getRewardEntry(entry.getKey())));
       i++;
     }
     ItemStack whiteGlass =
@@ -64,13 +69,59 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     this.getInventory().setItem(23 + adjustSlot, whiteGlass);
     this.getInventory().setItem(24 + adjustSlot, whiteGlass);
     this.getInventory().setItem(25 + adjustSlot, whiteGlass);
-    this.getInventory().setItem(26 + adjustSlot, whiteGlass);
+    addButton(26 + adjustSlot, sortRewardsButton());
     addButton(24 + adjustSlot, adjustAmountToWin());
     addButton(22 + adjustSlot, addRewardButton());
     addButton(20 + adjustSlot, balanceRewardChancesButton());
     addButton(18 + adjustSlot, backButton());
     super.allowBottomInventoryClick(true);
     super.decorate(player);
+  }
+
+  private InventoryButton sortRewardsButton() {
+    return new InventoryButton()
+        .creator(
+            player -> {
+              ItemStackHelper.Builder builder =
+                  ItemStackHelper.builder(Material.BOOK)
+                      .name("&3&lSort Rewards")
+                      .addLore(" ")
+                      .addLore("&3&lSort By:");
+              for (CrateManager.SortBy value : CrateManager.SortBy.values()) {
+                if (value == crate.getSortBy()) {
+                  builder.addLore("&f - " + value.getName());
+                } else {
+                  builder.addLore("&7 - " + value.getName());
+                }
+              }
+              builder.addLore("");
+              if (order.equals(CrateManager.Order.DESCENDING)) {
+                builder.addLore("&7Ascending &f\\ &f&lDescending");
+              } else {
+                builder.addLore("&f&lAscending &f\\ &7Descending");
+              }
+              builder.addLore("");
+              builder.addLore("&e[Left-Click to scroll sort]");
+              builder.addLore("&e[Right-Click to change order]");
+              return builder.build();
+            })
+        .consumer(
+            event -> {
+              Player player = (Player) event.getWhoClicked();
+              LinkedHashMap<ItemStack, Component> sortedRewards = crate.getRewardsDisplayMap();
+              if (event.getClick() == ClickType.RIGHT) {
+                order = CrateManager.Order.flip(order);
+                crate.setOrder(order);
+                sortedRewards = CrateManager.sortRewards(crate.getSortBy(), order, crate);
+              } else if (event.getClick() == ClickType.LEFT) {
+                CrateManager.SortBy next = CrateManager.SortBy.next(crate.getSortBy());
+                crate.setSortBy(next);
+                sortedRewards = CrateManager.sortRewards(next, order, crate);
+              }
+              crate.setRewardsDisplayMap(sortedRewards);
+              CrateManager.updateCrate(crate.getId(), crate);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
+            });
   }
 
   private InventoryButton balanceRewardChancesButton() {
@@ -93,7 +144,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
               Player player = (Player) event.getWhoClicked();
               CrateManager.balanceRewardChances(crate);
               CrateManager.updateCrate(crate.getId(), crate);
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
             });
   }
 
@@ -125,7 +176,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                               Integer.valueOf(stateSnapshot.getText().replaceAll("[^0-9]", ""));
                           crate.setAmountToWin(newValue);
                           CrateManager.updateCrate(crate.getId(), crate);
-                          Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+                          Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
                         }
                         return Collections.emptyList();
                       })
@@ -174,7 +225,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
               crate.addReward(player.getItemOnCursor(), prob.doubleValue());
               CrateManager.balanceRewardChances(crate);
               CrateManager.updateCrate(crate.getId(), crate);
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
             });
   }
 
@@ -206,7 +257,8 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                                 Double.valueOf(stateSnapshot.getText().replaceAll("[^A+-Z+]", ""));
                             crate.updateReward(reward.getKey(), newValue);
                             CrateManager.updateCrate(crate.getId(), crate);
-                            Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+                            Main.getGuiManager()
+                                .openGUI(new CrateRewardsMenu(crate, order), player);
                           }
                           return Collections.emptyList();
                         })
@@ -214,8 +266,17 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
               } else if (event.getClick() == ClickType.MIDDLE) { // Change reward name
                 player.getInventory().close();
                 player.sendMessage("");
+                String originalName = TextUtil.deformat(crate.getRewardDisplay(reward.getKey()));
+                Component component =
+                    MiniMessage.miniMessage()
+                        .deserialize(
+                            "<hover:show_text:'<gray>Click for Original Text'><click:SUGGEST_COMMAND:'"
+                                + originalName
+                                + "'>[Original]</click></hover>")
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
                 player.sendMessage(
-                    TextUtil.format("&7(Lasts 20s) &3Enter the new name for the reward:"));
+                    TextUtil.format(
+                        "&7(Lasts 20s) &3Enter the new name for the reward: ").append(component));
                 player.sendMessage("");
                 setRewardNamePromptMap.put(player, new Pair<>(crate, reward.getKey()));
                 taskMap.put(
@@ -229,11 +290,26 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                               player.sendMessage(TextUtil.format("&cPrompt expired."));
                             },
                             20 * 20L));
+              } else if (event.getClick() == ClickType.SHIFT_LEFT) {
+                LinkedHashMap<ItemStack, Component> rewardMap =
+                    Utils.moveEntry(crate.getRewardsDisplayMap(), reward.getKey(), -1);
+                crate.setRewardsDisplayMap(rewardMap);
+                crate.setSortBy(CrateManager.SortBy.CUSTOM);
+                CrateManager.updateCrate(crate.getId(), crate);
+                Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
+              } else if (event.getClick() == ClickType.SHIFT_RIGHT) {
+                LinkedHashMap<ItemStack, Component> rewardMap =
+                    Utils.moveEntry(crate.getRewardsDisplayMap(), reward.getKey(), 1);
+                crate.setRewardsDisplayMap(rewardMap);
+                crate.setSortBy(CrateManager.SortBy.CUSTOM);
+                CrateManager.updateCrate(crate.getId(), crate);
+                Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, order), player);
               }
             });
   }
 
   public static class SetRewardNamePrompt implements Listener {
+
     @EventHandler
     public void setCrateNamePrompt(AsyncChatEvent event) {
       Player player = event.getPlayer();
@@ -261,7 +337,9 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
       Bukkit.getScheduler()
           .scheduleSyncDelayedTask(
               Main.getInstance(),
-              () -> Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player));
+              () ->
+                  Main.getGuiManager()
+                      .openGUI(new CrateRewardsMenu(crate, crate.getOrder()), player));
     }
   }
 }

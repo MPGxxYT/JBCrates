@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Crate {
@@ -16,8 +17,10 @@ public class Crate {
   String displayName;
   String description = "&7This is the default description.";
   Map<String, Double> rewardsMap = new HashMap<>();
-  Map<String, String> rewardsDisplayMap = new HashMap<>();
+  LinkedHashMap<String, String> rewardsDisplayMap = new LinkedHashMap<>();
   Integer amountToWin = 1;
+  CrateManager.SortBy sortBy = CrateManager.SortBy.CHANCE;
+  CrateManager.Order order = CrateManager.Order.ASCENDING;
 
   public Crate(String displayName) {
     this(TextUtil.format(displayName));
@@ -45,18 +48,42 @@ public class Crate {
       String displayName,
       String description,
       Map<String, Double> rewardsMap,
-      Map<String, String> rewardsDisplayMap,
-      Integer amountToWin) {
+      LinkedHashMap<String, String> rewardsDisplayMap,
+      Integer amountToWin, CrateManager.SortBy sortBy, CrateManager.Order order) {
     this.displayName = displayName;
     this.id = id;
     this.description = description;
     this.rewardsMap = rewardsMap;
     this.rewardsDisplayMap = rewardsDisplayMap;
     this.amountToWin = amountToWin;
+    this.sortBy = sortBy;
+    this.order = order;
   }
 
   public Crate clone() {
-    return new Crate(id, displayName, description, rewardsMap, rewardsDisplayMap, amountToWin);
+    return new Crate(id, displayName, description, rewardsMap, rewardsDisplayMap, amountToWin, sortBy, order);
+  }
+
+  public CrateManager.SortBy getSortBy() {
+    if (sortBy == null) {
+      return CrateManager.SortBy.CHANCE;
+    }
+    return sortBy;
+  }
+
+  public void setSortBy(CrateManager.SortBy sortBy) {
+    this.sortBy = sortBy;
+  }
+
+  public CrateManager.Order getOrder() {
+    if (order == null) {
+      return CrateManager.Order.ASCENDING;
+    }
+    return order;
+  }
+
+  public void setOrder(CrateManager.Order order) {
+    this.order = order;
   }
 
   public String getId() {
@@ -77,14 +104,12 @@ public class Crate {
 
   public Map<ItemStack, Double> getRewardsMap() {
     Map<ItemStack, Double> convertedMap = new HashMap<>();
-    for (Map.Entry<String, Double> entry : rewardsMap.entrySet()) {
-      convertedMap.put(decodeItemStack(entry.getKey()), entry.getValue());
-    }
+    rewardsMap.forEach((key, value) -> convertedMap.put(decodeItemStack(key), value));
     return convertedMap;
   }
 
-  public Map<ItemStack, Component> getRewardsDisplayMap() {
-    Map<ItemStack, Component> convertedMap = new HashMap<>();
+  public LinkedHashMap<ItemStack, Component> getRewardsDisplayMap() {
+    LinkedHashMap<ItemStack, Component> convertedMap = new LinkedHashMap<>();
     for (Map.Entry<String, String> entry : rewardsDisplayMap.entrySet()) {
       Component display;
       ItemStack itemStack = decodeItemStack(entry.getKey());
@@ -116,17 +141,14 @@ public class Crate {
 
   public void setRewardsMap(Map<ItemStack, Double> rewardsMap) {
     this.rewardsMap.clear();
-    for (Map.Entry<ItemStack, Double> entry : rewardsMap.entrySet()) {
-      this.rewardsMap.put(encodeItemStack(entry.getKey()), entry.getValue());
-    }
+    rewardsMap.forEach((key, value) -> this.rewardsMap.put(encodeItemStack(key), value));
   }
 
-  public void setRewardsDisplayMap(Map<ItemStack, Component> rewardsDisplayMap) {
+  public void setRewardsDisplayMap(LinkedHashMap<ItemStack, Component> rewardsDisplayMap) {
     this.rewardsDisplayMap.clear();
-    for (Map.Entry<ItemStack, Component> entry : rewardsDisplayMap.entrySet()) {
-      this.rewardsDisplayMap.put(
-          encodeItemStack(entry.getKey()), TextUtil.serializeComponent(entry.getValue()));
-    }
+    rewardsDisplayMap.forEach((key, value) ->
+        this.rewardsDisplayMap.put(
+            encodeItemStack(key), TextUtil.serializeComponent(value)));
   }
 
   public void setAmountToWin(Integer amountToWin) {
@@ -159,6 +181,17 @@ public class Crate {
       return fixRewardDisplay(itemStack);
     }
     return TextUtil.deserializeComponent(rewardDisplay);
+  }
+
+  public Double getRewardChance(ItemStack itemStack) {
+    String encodedReward = encodeItemStack(itemStack);
+    return rewardsMap.get(encodedReward);
+  }
+
+  public Map.Entry<ItemStack, Double> getRewardEntry(ItemStack itemStack) {
+    String encodedReward = encodeItemStack(itemStack);
+    Double v = rewardsMap.get(encodedReward);
+    return Map.entry(itemStack, v);
   }
 
   private Component fixRewardDisplay(ItemStack itemStack){

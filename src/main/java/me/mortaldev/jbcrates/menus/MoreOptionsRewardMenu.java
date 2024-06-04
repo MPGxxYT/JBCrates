@@ -149,7 +149,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, crate.getOrder()), player);
             });
   }
 

@@ -11,6 +11,8 @@ import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -103,7 +105,7 @@ public class ManageCrateMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate), player);
+              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, crate.getOrder()), player);
             });
   }
 
@@ -155,7 +157,15 @@ public class ManageCrateMenu extends InventoryGUI {
               Player player = (Player) event.getWhoClicked();
               player.getInventory().close();
               player.sendMessage("");
-              player.sendMessage(TextUtil.format("&7(Lasts 20s) &3Enter the new name for the crate:"));
+              String originalName = TextUtil.deformat(crate.getDisplayName());
+              Component component =
+                  MiniMessage.miniMessage()
+                      .deserialize(
+                          "<hover:show_text:'<gray>Click for Original Text'><click:SUGGEST_COMMAND:'"
+                              + originalName
+                              + "'>[Original]</click></hover>")
+                      .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+              player.sendMessage(TextUtil.format("&7(Lasts 20s) &3Enter the new name for the crate: ").append(component));
               player.sendMessage("");
               setNamePromptMap.put(player, new Pair<>(crate, Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
                 setNamePromptMap.remove(player);

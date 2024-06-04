@@ -3,7 +3,41 @@ package me.mortaldev.jbcrates.utils;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Utils {
+
+    /**
+     * Move the entry with the given key in the LinkedHashMap by the specified shift amount.
+     *
+     * @param map   the LinkedHashMap to modify
+     * @param key   the key of the entry to move
+     * @param shift the amount to shift the entry
+     * @param <K>   the type of the keys in the map
+     * @param <V>   the type of the values in the map
+     * @return a new LinkedHashMap with the entry moved, or the original map if the key or shift is invalid
+     */
+    public static <K, V> LinkedHashMap<K, V> moveEntry(LinkedHashMap<K, V> map, K key, int shift) {
+        List<Map.Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        int index = -1;
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getKey().equals(key)) {
+                index = i;
+                break;
+            }
+        }
+        if (index > -1 && index + shift >= 0 && index + shift < list.size()) {
+            Map.Entry<K, V> entry = list.remove(index);
+            list.add(index + shift, entry);
+        }
+        LinkedHashMap<K, V> result = new LinkedHashMap<>();
+        list.forEach(entry -> result.put(entry.getKey(), entry.getValue()));
+        return result;
+    }
+
     /**
      * Returns the given value clamped between the minimum and maximum values.
      *
@@ -17,6 +51,13 @@ public class Utils {
         return Math.max(min, Math.min(max, value));
     }
 
+    /**
+     * Determines whether the given inventory can hold the specified amount of items.
+     *
+     * @param inventory The inventory to check.
+     * @param amountOfItems The amount of items to check if the inventory can hold.
+     * @return True if the inventory can hold the specified amount of items, false otherwise.
+     */
     public static boolean canInventoryHold(Inventory inventory, int amountOfItems){
         if (inventory.firstEmpty() == -1) {
             return false;
@@ -30,6 +71,12 @@ public class Utils {
       return nulls >= amountOfItems;
     }
 
+    /**
+     * Converts the given ItemStack into a formatted item name string.
+     *
+     * @param itemStack The ItemStack to convert.
+     * @return The formatted item name string.
+     */
     public static String itemName(ItemStack itemStack){
         String name = itemStack.getType().getKey().getKey().replaceAll("_", " ").toLowerCase();
         // "lapis lazuli"
@@ -50,6 +97,12 @@ public class Utils {
         return stringBuilder.toString();
     }
 
+    /**
+     * Converts the given ItemStack into a grammatically correct item name string.
+     *
+     * @param itemStack The ItemStack to convert.
+     * @return The grammatically correct item name string.
+     */
     public static String grammarItem(ItemStack itemStack){
         String name = itemName(itemStack);
         String type = String.valueOf(name.charAt(name.length() - 1));
