@@ -1,5 +1,7 @@
 package me.mortaldev.jbcrates.modules.menu;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -7,15 +9,12 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public abstract class InventoryGUI implements InventoryHandler {
 
+  private final Map<Integer, InventoryButton> buttonMap = new HashMap<>();
   private boolean allowBottomInventoryClick;
   private boolean allowTopInventoryClick;
   private Inventory inventory;
-  private final Map<Integer, InventoryButton> buttonMap = new HashMap<>();
 
   public InventoryGUI() {
     allowBottomInventoryClick = false;
@@ -59,11 +58,11 @@ public abstract class InventoryGUI implements InventoryHandler {
         && !allowTopInventoryClick) {
       event.setCancelled(true);
     }
-      if (event.getView().getTopInventory() == event.getClickedInventory()) {
-          int slot = event.getSlot();
-          InventoryButton button = this.buttonMap.get(slot);
-          if (button != null) {
-              button.getEventConsumer().accept(event);
+    if (event.getView().getTopInventory() == event.getClickedInventory()) {
+      int slot = event.getSlot();
+      InventoryButton button = this.buttonMap.get(slot);
+      if (button != null) {
+        button.getEventConsumer().accept(event);
       }
     }
   }

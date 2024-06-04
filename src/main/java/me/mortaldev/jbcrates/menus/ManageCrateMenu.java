@@ -7,7 +7,7 @@ import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
 import me.mortaldev.jbcrates.records.Pair;
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -26,6 +26,7 @@ import java.util.Map;
 
 public class ManageCrateMenu extends InventoryGUI {
 
+  public static Map<Player, Pair<Crate, Integer>> setNamePromptMap = new HashMap<>();
   private final Crate crate;
 
   public ManageCrateMenu(Crate crate) {
@@ -58,7 +59,7 @@ public class ManageCrateMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             playerCreator ->
-                ItemStackBuilder.builder(Material.ARROW)
+                ItemStackHelper.builder(Material.ARROW)
                     .name("&c&lBack")
                     .addLore("&7Click to return to previous page")
                     .build())
@@ -73,7 +74,7 @@ public class ManageCrateMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.RED_DYE)
+                ItemStackHelper.builder(Material.RED_DYE)
                     .name("&c&lDELETE:")
                     .addLore("&7")
                     .addLore("&cDelete crate &l" + crate.getId() + "&c?")
@@ -91,7 +92,7 @@ public class ManageCrateMenu extends InventoryGUI {
         .creator(
             player -> {
               List<Component> crateRewardsText = CrateManager.getCrateRewardsText(crate, 7);
-              return ItemStackBuilder.builder(Material.CHEST)
+              return ItemStackHelper.builder(Material.CHEST)
                   .name("&3&lREWARDS:")
                   .addLore("&7")
                   .addLore(crateRewardsText)
@@ -110,7 +111,7 @@ public class ManageCrateMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.PAPER)
+                ItemStackHelper.builder(Material.PAPER)
                     .name("&3&lDESCRIPTION:")
                     .addLore("&7")
                     .addLore(crate.getDescription())
@@ -124,7 +125,7 @@ public class ManageCrateMenu extends InventoryGUI {
                   .plugin(Main.getInstance())
                   .title("Crate Desc: " + crate.getId())
                   .itemLeft(
-                      ItemStackBuilder.builder(Material.PAPER).name(crate.getDescription()).build())
+                      ItemStackHelper.builder(Material.PAPER).name(crate.getDescription()).build())
                   .onClick(
                       (slot, stateSnapshot) -> {
                         if (slot == 2) {
@@ -142,7 +143,7 @@ public class ManageCrateMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.NAME_TAG)
+                ItemStackHelper.builder(Material.NAME_TAG)
                     .name("&3&lNAME:")
                     .addLore("&7")
                     .addLore(crate.getDisplayName())
@@ -162,8 +163,6 @@ public class ManageCrateMenu extends InventoryGUI {
               }, 20 * 20L)));
             });
   }
-
-  public static Map<Player, Pair<Crate, Integer>> setNamePromptMap = new HashMap<>();
 
   public static class SetCrateNamePromptEvent implements Listener {
     @EventHandler

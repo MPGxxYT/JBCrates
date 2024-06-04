@@ -14,6 +14,46 @@ import java.util.regex.Pattern;
 public class TextUtil {
 
   /**
+   * Replaces any special characters in the given string with underscores.
+   *
+   * @param string the string to be formatted
+   * @return the formatted string with special characters replaced by underscores
+   */
+  public static String fileFormat(String string){
+    return string.replaceAll("[^a-zA-Z0-9_-]", "_");
+  }
+
+  /**
+   * Removes decoration tags from the given string.
+   *
+   * @param string the string from which to remove decoration tags
+   * @return the string with decoration tags removed
+   */
+  public static String removeDecoration(String string) {
+    StringBuilder editString = new StringBuilder(string);
+    for (String key : Decorations.getKeys()) {
+      key = "&" + key;
+      editString.replace(0, editString.length(), editString.toString().replace(key, ""));
+    }
+    return editString.toString();
+  }
+
+  /**
+   * Removes color tags from the given string.
+   *
+   * @param string the string from which to remove color tags
+   * @return the string with color tags removed
+   */
+  public static String removeColors(String string) {
+    StringBuilder editString = new StringBuilder(string);
+    for (String key : Colors.getKeys()) {
+      key = "&" + key;
+      editString.replace(0, editString.length(), editString.toString().replace(key, ""));
+    }
+    return editString.toString().replaceAll("<#.{6}>", "");
+  }
+
+  /**
    * Serializes a Component object to a JSON string using GsonComponentSerializer.
    *
    * @param component The Component object to serialize.
@@ -79,16 +119,7 @@ public class TextUtil {
   // [EXTRA TEXT ] [ INPUT] [PAR][ARG  ] [PAR][   ARG  ]
   //             ||        ||          ||
 
-  /**
-   * Converts the given input string to a parameterized form by identifying tagged clusters in the
-   * input. Tagged clusters are parts of the string that start with a recognized key from Types enum
-   * followed by '##'. This function throws an IllegalArgumentException if the input string is null.
-   *
-   * @param str the input string that needs to be parameterized.
-   * @return a parameterized version of the input string.
-   * @throws IllegalArgumentException if input string is null.
-   */
-  public static String asParam(String str) {
+   private static String asParam(String str) {
     if (str == null) {
       throw new IllegalArgumentException("Input string cannot be null.");
     }
@@ -186,19 +217,7 @@ public class TextUtil {
     return typeValue.replace("#arg#", value).replace("#input#", past_text);
   }
 
-  /**
-   * Converts a string to the MiniMessage format based on provided options. Replaces occurrences of
-   * "&nl" with "<newline>". Replaces hexadecimal character references with corresponding
-   * formatting. Replaces color and decoration tags with corresponding MiniMessage tags.
-   *
-   * <p>This method assumes that the `str` parameter is not null.
-   *
-   * @param str The string to format; assumed to be not null.
-   * @param disableReset If true, reset tag ("<reset>") will not be inserted before every color tag.
-   *     This can be used to maintain color formatting across multiple strings.
-   * @return The MiniMessage formatted string.
-   */
-  public static String asString(String str, boolean disableReset) {
+  private static String asString(String str, boolean disableReset) {
     StringBuilder stringBuilder = new StringBuilder(str);
     stringBuilder.replace(0, stringBuilder.length(), str.replace("&nl", "<newline>"));
 
@@ -233,25 +252,7 @@ public class TextUtil {
     return stringBuilder.toString();
   }
 
-  public static String removeDecoration(String string) {
-    StringBuilder editString = new StringBuilder(string);
-    for (String key : Decorations.getKeys()) {
-      key = "&" + key;
-      editString.replace(0, editString.length(), editString.toString().replace(key, ""));
-    }
-    return editString.toString();
-  }
-
-  public static String removeColors(String string) {
-    StringBuilder editString = new StringBuilder(string);
-    for (String key : Colors.getKeys()) {
-      key = "&" + key;
-      editString.replace(0, editString.length(), editString.toString().replace(key, ""));
-    }
-    return editString.toString().replaceAll("<#.{6}>", "");
-  }
-
-  public enum Types {
+  private enum Types {
     // CLICK ACTIONS
     CHANGE_PAGE("pge:", "<click:change_page:'#arg#'>#input#</click>"),
     COPY_TO_CLIPBOARD("cpy:", "<click:copy_to_clipboard:'#arg#'>#input#</click>"),
@@ -316,11 +317,7 @@ public class TextUtil {
       this.value = value;
     }
 
-    public String getKey() {
-      return key;
-    }
-
-    public static String[] getKeys() {
+    static String[] getKeys() {
       List<String> keys = new ArrayList<>();
       for (Types types : Types.values()) {
         keys.add(types.getKey());
@@ -328,7 +325,7 @@ public class TextUtil {
       return keys.toArray(new String[0]);
     }
 
-    public static Types getTypeFromKey(String string) {
+    static Types getTypeFromKey(String string) {
       for (Types value : values()) {
         if (value.getKey().equals(string)) {
           return value;
@@ -337,12 +334,16 @@ public class TextUtil {
       return null;
     }
 
-    public String getValue() {
+    String getKey() {
+      return key;
+    }
+
+    String getValue() {
       return value;
     }
   }
 
-  public enum Decorations {
+  private enum Decorations {
     BOLD("l", "b"),
     ITALIC("o", "em"),
     UNDERLINE("n", "u"),
@@ -358,11 +359,7 @@ public class TextUtil {
       this.value = value;
     }
 
-    public String getKey() {
-      return key;
-    }
-
-    public static String[] getKeys() {
+    static String[] getKeys() {
       List<String> keys = new ArrayList<>();
       for (Decorations decorations : Decorations.values()) {
         keys.add(decorations.getKey());
@@ -370,12 +367,16 @@ public class TextUtil {
       return keys.toArray(new String[0]);
     }
 
-    public String getValue() {
+    String getKey() {
+      return key;
+    }
+
+    String getValue() {
       return value;
     }
   }
 
-  public enum Colors {
+  private enum Colors {
     BLACK("0", "black"),
     DARK_BLUE("1", "dark_blue"),
     DARK_GREEN("2", "dark_green"),
@@ -401,11 +402,7 @@ public class TextUtil {
       this.value = value;
     }
 
-    public String getKey() {
-      return key;
-    }
-
-    public static String[] getKeys() {
+    static String[] getKeys() {
       List<String> keys = new ArrayList<>();
       for (Colors colors : Colors.values()) {
         keys.add(colors.getKey());
@@ -413,7 +410,11 @@ public class TextUtil {
       return keys.toArray(new String[0]);
     }
 
-    public String getValue() {
+    String getKey() {
+      return key;
+    }
+
+    String getValue() {
       return value;
     }
   }

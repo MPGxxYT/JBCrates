@@ -1,6 +1,6 @@
 package me.mortaldev.jbcrates.modules.crate;
 
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
@@ -195,8 +195,8 @@ public class CrateManager {
       ItemStack itemStack, Double chance, Component display) {
 
     ItemStack clonedItemStack = itemStack.clone();
-    ItemStackBuilder itemStackBuilder =
-        ItemStackBuilder.builder(clonedItemStack)
+    ItemStackHelper.Builder itemStackHelper =
+        ItemStackHelper.builder(clonedItemStack)
             .addLore("&7")
             .addLore(TextUtil.format("&7Display: ").append(display))
             .addLore("&7")
@@ -208,23 +208,23 @@ public class CrateManager {
       if (!commandReward.startsWith("/")) {
         commandReward = "/" + commandReward;
       }
-      itemStackBuilder.addLore("&3Command: " + commandReward).addLore("&7");
+      itemStackHelper.addLore("&3Command: " + commandReward).addLore("&7");
     }
 
-    itemStackBuilder
+    itemStackHelper
         .addLore("&e[Left Click to change chance]")
         .addLore("&e[Middle Click to change display name]")
         .addLore("&e[Right Click for more options]");
 
-    return itemStackBuilder.build();
+    return itemStackHelper.build();
   }
 
   public static ItemStack generateDisplayRewardItemStack(
       ItemStack itemStack, Double chance, Component display) {
 
     ItemStack clonedItemStack = itemStack.clone();
-    ItemStackBuilder itemStackBuilder =
-        ItemStackBuilder.builder(clonedItemStack)
+    ItemStackHelper.Builder itemStackHelper =
+        ItemStackHelper.builder(clonedItemStack)
             .addLore("&7")
             .addLore(TextUtil.format("&7Display: ").append(display))
             .addLore("&7")
@@ -236,15 +236,15 @@ public class CrateManager {
       if (!commandReward.startsWith("/")) {
         commandReward = "/" + commandReward;
       }
-      itemStackBuilder.addLore("&3Command: " + commandReward).addLore("&7");
+      itemStackHelper.addLore("&3Command: " + commandReward).addLore("&7");
     }
 
-    return itemStackBuilder.build();
+    return itemStackHelper.build();
   }
 
   public static ItemStack generateDisplayCrateItemStack(Crate crate) {
-    ItemStackBuilder builder =
-        ItemStackBuilder.builder(Material.CHEST)
+    ItemStackHelper.Builder builder =
+        ItemStackHelper.builder(Material.CHEST)
             .name(crate.getDisplayName())
             .addLore("&7" + crate.getId())
             .addLore("&7" + crate.getDescription())
@@ -254,8 +254,8 @@ public class CrateManager {
   }
 
   public static ItemStack generatePlaceCrateItemStack(Crate crate) {
-    ItemStackBuilder builder =
-        ItemStackBuilder.builder(Material.ENDER_CHEST).name(crate.getDisplayName());
+    ItemStackHelper.Builder builder =
+        ItemStackHelper.builder(Material.ENDER_CHEST).name(crate.getDisplayName());
     if (!crate.getDescription().isBlank()) {
       builder.addLore("&7" + crate.getDescription());
     }

@@ -5,7 +5,7 @@ import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
 import org.bukkit.Bukkit;
@@ -39,7 +39,10 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
     this.addButton(11, cancelButton());
 
     this.getInventory()
-        .setItem(13, CrateManager.generateDisplayRewardItemStack(reward.getKey(), reward.getValue(), crate.getRewardDisplay(reward.getKey())));
+        .setItem(
+            13,
+            CrateManager.generateDisplayRewardItemStack(
+                reward.getKey(), reward.getValue(), crate.getRewardDisplay(reward.getKey())));
 
     this.addButton(15, confirmButton());
     this.addButton(16, confirmButton());
@@ -51,7 +54,7 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.LIME_STAINED_GLASS_PANE)
+                ItemStackHelper.builder(Material.LIME_STAINED_GLASS_PANE)
                     .name("&2&lYES! REMOVE '" + Utils.itemName(reward.getKey()) + "'")
                     .build())
         .consumer(
@@ -68,7 +71,7 @@ public class RemoveCrateRewardMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.RED_STAINED_GLASS_PANE)
+                ItemStackHelper.builder(Material.RED_STAINED_GLASS_PANE)
                     .name("&c&lNO! DONT REMOVE '" + Utils.itemName(reward.getKey()) + "'")
                     .build())
         .consumer(

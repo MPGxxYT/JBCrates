@@ -6,7 +6,7 @@ import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -25,8 +25,9 @@ import java.util.*;
 
 public class ViewCratesMenu extends InventoryGUI {
 
-  private int currentPage;
+  public static Map<Player, Integer> promptMap = new HashMap<>();
   private final List<Crate> crateList;
+  private int currentPage;
   private int inventorySize;
   private int adjustedSlots;
 
@@ -66,7 +67,7 @@ public class ViewCratesMenu extends InventoryGUI {
         this.addButton(i, crateButton(crate));
       }
     }
-    ItemStack whiteGlass = ItemStackBuilder.builder(Material.WHITE_STAINED_GLASS_PANE).name("&7").build();
+    ItemStack whiteGlass = ItemStackHelper.builder(Material.WHITE_STAINED_GLASS_PANE).name("&7").build();
     this.getInventory().setItem(19 + adjustedSlots, whiteGlass);
     this.getInventory().setItem(20 + adjustedSlots, whiteGlass);
     this.getInventory().setItem(24 + adjustedSlots, whiteGlass);
@@ -97,7 +98,7 @@ public class ViewCratesMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.ARROW)
+                ItemStackHelper.builder(Material.ARROW)
                     .name("&2&lNext")
                     .addLore("&7Click to view next page")
                     .build())
@@ -115,7 +116,7 @@ public class ViewCratesMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.LIME_DYE)
+                ItemStackHelper.builder(Material.LIME_DYE)
                     .name("&2&lAdd Crate")
                     .addLore("&7Click to create & add a new crate.")
                     .build())
@@ -132,36 +133,12 @@ public class ViewCratesMenu extends InventoryGUI {
               }, 20 * 20L));
             });
   }
-  public static Map<Player, Integer> promptMap = new HashMap<>();
-
-  public static class AddCratePromptEvent implements Listener {
-
-    @EventHandler
-    public void addCratePrompt(AsyncChatEvent event){
-      Player player = event.getPlayer();
-      if (!promptMap.containsKey(player)) {
-        return;
-      }
-      event.setCancelled(true);
-      Bukkit.getScheduler().cancelTask(promptMap.remove(player));
-
-      String rewardString = event.originalMessage() instanceof TextComponent ? ((TextComponent) event.originalMessage()).content() : "";
-      Component formattedText = TextUtil.format(rewardString);
-
-      Crate crate = new Crate(formattedText);
-      CrateManager.addCrate(crate);
-      player.sendMessage(TextUtil.format("&3Crate " + crate.getId() + " crated with name: "));
-      player.sendMessage(formattedText);
-      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player));
-    }
-  }
-
 
   private InventoryButton searchButton() {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.ANVIL)
+                ItemStackHelper.builder(Material.ANVIL)
                     .name("&f&lSearch")
                     .addLore("&7Click to search through crates.")
                     .build())
@@ -172,7 +149,7 @@ public class ViewCratesMenu extends InventoryGUI {
                   .plugin(Main.getInstance())
                   .title("Search for Crate")
                   .itemLeft(
-                      ItemStackBuilder.builder(Material.CHEST).name("&7Name of Crate").build())
+                      ItemStackHelper.builder(Material.CHEST).name("&7Name of Crate").build())
                   .onClick(
                       (slot, stateSnapshot) -> {
                         if (slot == 2) {
@@ -196,7 +173,7 @@ public class ViewCratesMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.BONE_MEAL)
+                ItemStackHelper.builder(Material.BONE_MEAL)
                     .name("&f&lRefresh")
                     .addLore("&7Click to refresh crates.")
                     .addLore("&7")
@@ -216,7 +193,7 @@ public class ViewCratesMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             playerCreator ->
-                ItemStackBuilder.builder(Material.ARROW)
+                ItemStackHelper.builder(Material.ARROW)
                     .name("&c&lBack")
                     .addLore("&7Click to return to previous page")
                     .build())
@@ -230,5 +207,27 @@ public class ViewCratesMenu extends InventoryGUI {
                 Main.getGuiManager().openGUI(new ViewCratesMenu(currentPage), player);
               }
             });
+  }
+
+  public static class AddCratePromptEvent implements Listener {
+
+    @EventHandler
+    public void addCratePrompt(AsyncChatEvent event){
+      Player player = event.getPlayer();
+      if (!promptMap.containsKey(player)) {
+        return;
+      }
+      event.setCancelled(true);
+      Bukkit.getScheduler().cancelTask(promptMap.remove(player));
+
+      String rewardString = event.originalMessage() instanceof TextComponent ? ((TextComponent) event.originalMessage()).content() : "";
+      Component formattedText = TextUtil.format(rewardString);
+
+      Crate crate = new Crate(formattedText);
+      CrateManager.addCrate(crate);
+      player.sendMessage(TextUtil.format("&3Crate " + crate.getId() + " crated with name: "));
+      player.sendMessage(formattedText);
+      Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> Main.getGuiManager().openGUI(new ManageCrateMenu(crate), player));
+    }
   }
 }

@@ -5,7 +5,7 @@ import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.wesjd.anvilgui.AnvilGUI;
@@ -59,7 +59,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.CONDUIT)
+                ItemStackHelper.builder(Material.CONDUIT)
                     .name("&3&lCommand Item")
                     .addLore("&7This will run a command as a console")
                     .addLore("&7when a player earns it in a crate.")
@@ -76,7 +76,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
 
   private void enterRewardCommand(Player player) {
     String cmd = NBTAPI.getNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY) != null ? NBTAPI.getNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY) : "";
-    ItemStackBuilder rewardItem = ItemStackBuilder.builder(Material.CONDUIT)
+    ItemStackHelper.Builder rewardItem = ItemStackHelper.builder(Material.CONDUIT)
         .name(cmd);
     new AnvilGUI.Builder()
         .plugin(Main.getInstance())
@@ -110,7 +110,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
               if (!commandReward.startsWith("/")) {
                 commandReward = "/" + commandReward;
               }
-              return ItemStackBuilder.builder(Material.CONDUIT)
+              return ItemStackHelper.builder(Material.CONDUIT)
                   .name("&3&lCommand Item")
                   .addLore("&7This item is currently a command item.")
                   .addLore("&7")
@@ -142,7 +142,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             playerCreator ->
-                ItemStackBuilder.builder(Material.ARROW)
+                ItemStackHelper.builder(Material.ARROW)
                     .name("&c&lBack")
                     .addLore("&7Click to return to previous page")
                     .build())
@@ -157,7 +157,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.RED_DYE)
+                ItemStackHelper.builder(Material.RED_DYE)
                     .name("&c&lRemove")
                     .addLore("&7Removes this reward from the crate.")
                     .addLore("&7")

@@ -7,7 +7,7 @@ import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.InventoryButton;
 import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
 import me.mortaldev.jbcrates.records.Pair;
-import me.mortaldev.jbcrates.utils.ItemStackBuilder;
+import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -29,6 +29,8 @@ import java.util.Map;
 
 public class CrateRewardsMenu extends InventoryGUI implements Listener {
 
+  public static Map<Player, Pair<Crate, ItemStack>> setRewardNamePromptMap = new HashMap<>();
+  public static Map<Player, Integer> taskMap = new HashMap<>();
   private final Crate crate;
 
   public CrateRewardsMenu(Crate crate) {
@@ -49,7 +51,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
       i++;
     }
     ItemStack whiteGlass =
-        ItemStackBuilder.builder(Material.WHITE_STAINED_GLASS_PANE).name("&7").build();
+        ItemStackHelper.builder(Material.WHITE_STAINED_GLASS_PANE).name("&7").build();
     this.getInventory().setItem(19, whiteGlass);
     this.getInventory().setItem(20, whiteGlass);
     this.getInventory().setItem(21, whiteGlass);
@@ -70,7 +72,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
         .creator(
             player -> {
               Double total = CrateManager.getRewardChancesTotal(crate);
-              return ItemStackBuilder.builder(Material.REDSTONE)
+              return ItemStackHelper.builder(Material.REDSTONE)
                   .name("&3&lBalance Reward Chances")
                   .addLore("&7Will balance the reward chances")
                   .addLore("&7to make sure it adds up to 100%")
@@ -93,7 +95,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.PAPER)
+                ItemStackHelper.builder(Material.PAPER)
                     .name("&3&lAmount To Win")
                     .addLore("&7The amount of items in this crate")
                     .addLore("&7that you want the player to receive.")
@@ -107,7 +109,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                   .plugin(Main.getInstance())
                   .title("Amount of Rewards to Win")
                   .itemLeft(
-                      ItemStackBuilder.builder(Material.PAPER)
+                      ItemStackHelper.builder(Material.PAPER)
                           .name(String.valueOf(crate.getAmountToWin()))
                           .build())
                   .onClick(
@@ -129,7 +131,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     return new InventoryButton()
         .creator(
             playerCreator ->
-                ItemStackBuilder.builder(Material.ARROW)
+                ItemStackHelper.builder(Material.ARROW)
                     .name("&c&lBack")
                     .addLore("&7Click to return to previous page")
                     .build())
@@ -144,7 +146,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
     return new InventoryButton()
         .creator(
             player ->
-                ItemStackBuilder.builder(Material.BUCKET)
+                ItemStackHelper.builder(Material.BUCKET)
                     .name("&2&lAdd Reward")
                     .addLore("&7Click with item in hand to add.")
                     .build())
@@ -188,7 +190,7 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
                     .plugin(Main.getInstance())
                     .title("Reward Chance")
                     .itemLeft(
-                        ItemStackBuilder.builder(Material.FLOWER_BANNER_PATTERN)
+                        ItemStackHelper.builder(Material.FLOWER_BANNER_PATTERN)
                             .name(String.valueOf(reward.getValue()))
                             .build())
                     .onClick(
@@ -224,9 +226,6 @@ public class CrateRewardsMenu extends InventoryGUI implements Listener {
               }
             });
   }
-
-  public static Map<Player, Pair<Crate, ItemStack>> setRewardNamePromptMap = new HashMap<>();
-  public static Map<Player, Integer> taskMap = new HashMap<>();
 
   public static class SetRewardNamePrompt implements Listener {
     @EventHandler
