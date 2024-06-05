@@ -11,31 +11,37 @@ Perm: jbcrates.getcraterewards
 
 `/getCrateRewards` Gives the player any rewards they may not have gotten.
 
-### /jbcrates 
-Perm: jbcrates.admin
+### /jbcrates
 
-`/jbcrates` Brings up the menu for managing crates.
+| Command & Subcommands      | Permission                    | Description                                     |
+|----------------------------|-------------------------------|-------------------------------------------------|
+| `/jbcrates`                | jbcrates.admin                | Brings up the menu for managing crates.         |
+| `reload`                   | jbcrates.admin                | Will reload the config                          |
+| `give <player> <crate_id>` | jbcrates.admin, jbcrates.give | Gives the input player a crate based on the id. |
 
-`/jbcrates reload` Will reload the config
+## Other
 
-`/jbcrates give <player> <crate_id>` Gives the input player a crate based on the id.
+### Logging
+Any activity will be logged in `JBCrates/logs/`
+
+Players with `jbcrates.log` permission will receive the logs in chat as well.
+
+ex. `[OFFLINE] CONSOLE gave Mortality_ crate sp1free`
 
 ## To-Do
 I will track my progress here and try to think of every possible task. 
 
 Features
-- [X] Make Reward Display Sorted (add options and maybe shift left or right to move)
 - [ ] Disable & Enable a Crate 
-- [ ] Give crate to offline player will add to "/getcraterewards" for player
-- [ ] Logs: date, time, sender, reciever, status
+- [X] Give crate to offline player will add to "/getcraterewards" for player
+- [X] Logs: date, time, sender, reciever, status
 - [ ] Maybe convert data storage to SQLite
 - [ ] Create Animation System (Multiple Animations & maybe custom animation maker)
-  - [X] Add Default Animation
 
 Clean Up & Refactor
 - [ ] Add any input corrections and checks.
 - [ ] Check & fix regex's
-- [ ] Change to aikar's commands instead.
+- [X] Change to aikar's commands instead.
 
 Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)

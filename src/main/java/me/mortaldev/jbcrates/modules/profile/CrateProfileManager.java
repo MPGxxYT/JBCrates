@@ -61,6 +61,11 @@ public class CrateProfileManager {
   }
 
   public static CrateProfile getCrateProfile(UUID uuid){
+    if (!crateProfileList.containsKey(uuid)) {
+      CrateProfile crateProfile = new CrateProfile(uuid);
+      addCrateProfile(crateProfile);
+      return crateProfile;
+    }
     return crateProfileList.get(uuid);
   }
   public static boolean hasCrateProfile(UUID uuid){

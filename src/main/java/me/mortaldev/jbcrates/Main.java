@@ -1,5 +1,8 @@
 package me.mortaldev.jbcrates;
 
+import co.aikar.commands.PaperCommandManager;
+import java.util.*;
+import java.util.stream.Collectors;
 import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
 import me.mortaldev.jbcrates.configs.MainConfig;
@@ -9,6 +12,7 @@ import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
 import me.mortaldev.jbcrates.menus.CrateRewardsMenu;
 import me.mortaldev.jbcrates.menus.ManageCrateMenu;
 import me.mortaldev.jbcrates.menus.ViewCratesMenu;
+import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.menu.GUIListener;
 import me.mortaldev.jbcrates.modules.menu.GUIManager;
@@ -18,15 +22,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
-
 public final class Main extends JavaPlugin {
 
   private static final String LABEL = "JBCrates";
   public static Main instance;
   public static GUIManager guiManager;
   public static MainConfig mainConfig;
-//  static HashSet<String> dependencies = new HashSet<>();
+  static PaperCommandManager commandManager;
+  //  static HashSet<String> dependencies = new HashSet<>();
   static List<Location> crateLocationList = new ArrayList<>();
 
   public static MainConfig getMainConfig() {
@@ -60,6 +63,7 @@ public final class Main extends JavaPlugin {
   @Override
   public void onEnable() {
     instance = this;
+    commandManager = new PaperCommandManager(this);
 
     // DATA FOLDER
 
@@ -76,13 +80,13 @@ public final class Main extends JavaPlugin {
 
     // DEPENDENCIES
 
-//    for (String plugin : dependencies) {
-//      if (Bukkit.getPluginManager().getPlugin(plugin) == null) {
-//        getLogger().warning("Could not find " + plugin + "! This plugin is required.");
-//        Bukkit.getPluginManager().disablePlugin(this);
-//        return;
-//      }
-//    }
+    //    for (String plugin : dependencies) {
+    //      if (Bukkit.getPluginManager().getPlugin(plugin) == null) {
+    //        getLogger().warning("Could not find " + plugin + "! This plugin is required.");
+    //        Bukkit.getPluginManager().disablePlugin(this);
+    //        return;
+    //      }
+    //    }
 
     // GUI Manager
     guiManager = new GUIManager();
@@ -101,8 +105,14 @@ public final class Main extends JavaPlugin {
 
     // Commands
 
-    new JBCrateCommand();
-    new GetCrateRewardsCommand();
+    commandManager
+        .getCommandCompletions()
+        .registerCompletion(
+            "crates",
+            c -> CrateManager.getCrates().stream().map(Crate::getId).collect(Collectors.toSet()));
+
+    commandManager.registerCommand(new JBCrateCommand());
+    commandManager.registerCommand(new GetCrateRewardsCommand());
 
     getLogger().info(LABEL + " Enabled");
   }
