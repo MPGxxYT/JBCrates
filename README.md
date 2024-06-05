@@ -26,6 +26,8 @@ I will track my progress here and try to think of every possible task.
 Features
 - [X] Make Reward Display Sorted (add options and maybe shift left or right to move)
 - [ ] Disable & Enable a Crate 
+- [ ] Give crate to offline player will add to "/getcraterewards" for player
+- [ ] Logs: date, time, sender, reciever, status
 - [ ] Maybe convert data storage to SQLite
 - [ ] Create Animation System (Multiple Animations & maybe custom animation maker)
   - [X] Add Default Animation
