@@ -17,6 +17,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+
 @CommandAlias("jbcrates|crates|crate")
 public class JBCrateCommand extends BaseCommand {
   @Default
@@ -62,7 +64,7 @@ public class JBCrateCommand extends BaseCommand {
       }
       case 2 -> {
         OfflinePlayer receiver = Bukkit.getOfflinePlayer(args[0]);
-        if (!receiver.hasPlayedBefore()) {
+        if (!Arrays.stream(Bukkit.getOfflinePlayers()).toList().contains(receiver)) {
           if (player == null) {
             sender.sendMessage("That player has never joined.");
           } else {
