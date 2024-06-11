@@ -45,6 +45,7 @@ Clean Up & Refactor
 
 Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)
+  - [ ] The permission for `give` is expecting `jbcrates.admin|jbcrates.give` 
 
 Possible Additions
 - [ ] Lore & Name updating for crates.
