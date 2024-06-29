@@ -35,9 +35,11 @@ Features
 - [ ] Disable & Enable a Crate 
 - [X] Give crate to offline player will add to "/getcraterewards" for player
 - [X] Logs: date, time, sender, reciever, status
+- [ ] Lock crate editing to one person per crate to avoid overlapping changes.
 - [ ] Add ability to do multi lined descriptions.
 - [ ] Maybe convert data storage to SQLite
 - [ ] Create Animation System (Multiple Animations & maybe custom animation maker)
+- [ ] Auto Updating Lore, Name, Rewards for crates.
 
 Clean Up & Refactor
 - [ ] Add any input corrections and checks.
@@ -48,6 +50,3 @@ Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)
   - [ ] The permission for `give` is expecting `jbcrates.admin|jbcrates.give` 
   - [ ] A crate will show 8 rewards, and have "...1 more" under it when there are only 8 inside.
-
-Possible Additions
-- [ ] Lore & Name updating for crates.
