@@ -50,3 +50,4 @@ Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)
   - [ ] The permission for `give` is expecting `jbcrates.admin|jbcrates.give` 
   - [ ] A crate will show 8 rewards, and have "...1 more" under it when there are only 8 inside.
+  - [ ] Sometimes the animation will just not display. Particles will tho, just not the items
