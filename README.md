@@ -28,8 +28,18 @@ Players with `jbcrates.log` permission will receive the logs in chat as well.
 
 ex. `[OFFLINE] CONSOLE gave Mortality_ crate sp1free`
 
+
+## Planned Updates
+v1.4.6
+- [ ] Update Command API & 
+- [ ] Fix give command permissions (support both perms)
+v1.4.7
+
+
 ## To-Do
 I will track my progress here and try to think of every possible task. 
+
+[Need refactor and updates to new systems ASAP]
 
 Features
 - [ ] Disable & Enable a Crate 
@@ -48,6 +58,6 @@ Clean Up & Refactor
 
 Bugs
   - [ ] Sometimes after a reward is changed back from a command item, the reward breaks and loses its data and cannot be fixed. (like chance for example)
-  - [ ] The permission for `give` is expecting `jbcrates.admin|jbcrates.give` 
+  - [ ] The permission for `give` is expecting `jbcrates.admin|jbcrates.give` * Fixing on 1.4.6
   - [ ] A crate will show 8 rewards, and have "...1 more" under it when there are only 8 inside.
   - [ ] Sometimes the animation will just not display. Particles will tho, just not the items
