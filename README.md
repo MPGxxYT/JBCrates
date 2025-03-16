@@ -33,6 +33,7 @@ ex. `[OFFLINE] CONSOLE gave Mortality_ crate sp1free`
 v1.4.6
 - [ ] Update Command API & 
 - [ ] Fix give command permissions (support both perms)
+
 v1.4.7
 
 
