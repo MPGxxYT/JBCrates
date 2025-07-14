@@ -1,49 +1,43 @@
 package me.mortaldev.jbcrates.modules.profile;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import me.mortaldev.crudapi.CRUD;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+public class CrateProfile implements CRUD.Identifiable {
 
-public class CrateProfile {
+  private final String id;
+  private final List<ItemStack> overflowRewards;
 
-  UUID uuid;
-  List<String> itemList;
-
-  public CrateProfile(UUID uuid) {
-    this.uuid = uuid;
-    this.itemList = new ArrayList<>();
+  @JsonCreator
+  public CrateProfile(
+      @JsonProperty("id") String id,
+      @JsonProperty("overflowRewards") List<ItemStack> overflowRewards) {
+    this.id = id == null ? "ID" : id;
+    this.overflowRewards = overflowRewards == null ? new ArrayList<>() : overflowRewards;
   }
 
-  String encodeItemStack(ItemStack itemStack){
-    byte[] itemStackAsBytes = itemStack.serializeAsBytes();
-    return Base64.getEncoder().encodeToString(itemStackAsBytes);
+  public static CrateProfile create(String id) {
+    return new CrateProfile(id, new ArrayList<>());
   }
 
-  ItemStack decodeItemStack(String string){
-    byte[] bytes = Base64.getDecoder().decode(string);
-    return ItemStack.deserializeBytes(bytes);
+  public void addItem(ItemStack itemStack) {
+    overflowRewards.add(itemStack);
   }
 
-  public UUID getUuid() {
-    return uuid;
+  public void removeItem(ItemStack itemStack) {
+    overflowRewards.remove(itemStack);
   }
 
-  public void addItem(ItemStack itemStack){
-    itemList.add(encodeItemStack(itemStack));
+  public List<ItemStack> getOverflowRewards() {
+    return overflowRewards;
   }
 
-  public void removeItem(ItemStack itemStack){
-    itemList.remove(encodeItemStack(itemStack));
-  }
-
-  public List<ItemStack> getItemList() {
-    List<ItemStack> items = new ArrayList<>();
-    for (String string : itemList) {
-      items.add(decodeItemStack(string));
-    }
-    return items;
+  @Override
+  public String getId() {
+    return id;
   }
 }

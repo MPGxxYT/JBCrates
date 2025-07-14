@@ -1,37 +1,43 @@
 package me.mortaldev.jbcrates.modules.profile;
 
+import me.mortaldev.crudapi.CRUD;
+import me.mortaldev.crudapi.CRUDAdapters;
+import me.mortaldev.crudapi.handlers.Jackson;
 import me.mortaldev.jbcrates.Main;
-import me.mortaldev.jbcrates.utils.GSON;
+import me.mortaldev.jbcrates.serializers.ItemStackDeserializer;
+import me.mortaldev.jbcrates.serializers.ItemStackSerializer;
+import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
-import java.util.UUID;
+public class CrateProfileCRUD extends CRUD<CrateProfile> {
 
-public class CrateProfileCRUD {
+  private static final String PATH = Main.getInstance().getDataFolder() + "/profiles/";
 
-  static String mainFilePath = Main.getInstance().getDataFolder() + "/profiles/";
-
-  public static String getMainFilePath() {
-    return mainFilePath;
+  private static class Singleton {
+    private static final CrateProfileCRUD INSTANCE = new CrateProfileCRUD();
   }
 
-  public static void saveProfile(CrateProfile crateProfile) {
-    File filePath = new File(mainFilePath + crateProfile.getUuid() + ".json");
-    GSON.saveJsonObject(filePath, crateProfile);
+  public static CrateProfileCRUD getInstance() {
+    return Singleton.INSTANCE;
   }
 
-  public static CrateProfile getProfile(UUID uuid) {
-    File filePath = new File(mainFilePath + uuid + ".json");
-    if (filePath.exists()) {
-      return GSON.getJsonObject(filePath, CrateProfile.class);
-    } else {
-      return null;
-    }
+  private CrateProfileCRUD() {
+    super(Jackson.getInstance());
   }
 
-  public static void deleteProfile(UUID uuid) {
-    File filePath = new File(mainFilePath + uuid + ".json");
-    if (filePath.exists()) {
-      filePath.delete();
-    }
+  @Override
+  public Class<CrateProfile> getClazz() {
+    return CrateProfile.class;
+  }
+
+  @Override
+  public CRUDAdapters getCRUDAdapters() {
+    return new CRUDAdapters()
+        .addSerializer(ItemStack.class, new ItemStackSerializer())
+        .addDeserializer(ItemStack.class, new ItemStackDeserializer());
+  }
+
+  @Override
+  public String getPath() {
+    return PATH;
   }
 }

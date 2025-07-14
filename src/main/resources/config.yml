@@ -10,3 +10,6 @@ crateCooldown: 20000
 #  world: 0
 worldWhitelist:
   spawn: 125
+
+
+migrated: false

@@ -1,5 +1,7 @@
 package me.mortaldev.jbcrates.utils;
 
+import java.util.Objects;
+import javax.annotation.Nullable;
 import me.mortaldev.jbcrates.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -8,9 +10,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
-import java.util.Objects;
 
 public class NBTAPI {
 

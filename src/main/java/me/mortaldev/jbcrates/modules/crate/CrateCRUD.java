@@ -1,61 +1,45 @@
 package me.mortaldev.jbcrates.modules.crate;
 
+import me.mortaldev.crudapi.CRUD;
+import me.mortaldev.crudapi.CRUDAdapters;
+import me.mortaldev.crudapi.handlers.Jackson;
 import me.mortaldev.jbcrates.Main;
-import me.mortaldev.jbcrates.utils.GSON;
-import org.bukkit.Bukkit;
+import me.mortaldev.jbcrates.serializers.*;
+import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
+public class CrateCRUD extends CRUD<Crate> {
+  private static final String PATH = Main.getInstance().getDataFolder() + "/crates/";
 
-public class CrateCRUD {
+  private static class Singleton {
+    private static final CrateCRUD INSTANCE = new CrateCRUD();
+  }
 
-    static String mainFilePath = Main.getInstance().getDataFolder() + "/crates/";
+  public static CrateCRUD getInstance() {
+    return Singleton.INSTANCE;
+  }
 
-    public static String getMainFilePath() {
-        return mainFilePath;
-    }
+  private CrateCRUD() {
+    super(Jackson.getInstance());
+  }
 
-    /**
-     * Saves a Crate object to a file in JSON format and returns the saved object.
-     *
-     * @param crateObject the Crate object to be saved
-     * @return the saved Crate object
-     */
-    public static Crate saveCrate(Crate crateObject) {
-        File filePath = new File(mainFilePath + crateObject.id + ".json");
-        GSON.saveJsonObject(filePath, crateObject);
-        //Bukkit.getLogger().info("Crate '" + crateObject.getId() + "' has been saved.");
-        return crateObject;
-    }
+  @Override
+  public Class<Crate> getClazz() {
+    return Crate.class;
+  }
 
-    /**
-     * Retrieves a Crate object based on the given crateID.
-     *
-     * @param crateID the ID of the crate to retrieve
-     * @return the Crate object with the specified crateID
-     * @throws IllegalArgumentException if the crate with the specified crateID does not exist
-     */
-    public static Crate getCrate(String crateID) {
-        File filePath = new File(mainFilePath + crateID + ".json");
-        if (filePath.exists()) {
-            return GSON.getJsonObject(filePath, Crate.class);
-        } else {
-            throw new IllegalArgumentException("Could not get crate: '" + crateID + "' does not exist.");
-        }
-    }
+  @Override
+  public CRUDAdapters getCRUDAdapters() {
+    return new CRUDAdapters()
+        .addKeySerializer(CrateItem.class, new CrateItemKeySerializer())
+        .addKeyDeserializer(CrateItem.class, new CrateItemKeyDeserializer())
+        .addKeySerializer(ItemStack.class, new ItemStackKeySerializer())
+        .addKeyDeserializer(ItemStack.class, new ItemStackKeyDeserializer())
+        .addSerializer(ItemStack.class, new ItemStackSerializer())
+        .addDeserializer(ItemStack.class, new ItemStackDeserializer());
+  }
 
-    /**
-     * Deletes a crate file based on the provided crate ID.
-     *
-     * @param crateID the ID of the crate to be deleted
-     * @throws IllegalArgumentException if the crate with the specified crateID does not exist
-     */
-    public static void deleteCrate(String crateID) {
-        File filePath = new File(mainFilePath + crateID + ".json");
-        if (filePath.exists()) {
-            filePath.delete();
-            Bukkit.getLogger().info("Crate '" + crateID + "' has been deleted.");
-        } else {
-            throw new IllegalArgumentException("Could not delete crate: '" + crateID + "' does not exist.");
-        }
-    }
+  @Override
+  public String getPath() {
+    return PATH;
+  }
 }

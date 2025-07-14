@@ -1,13 +1,21 @@
-package me.mortaldev.jbcrates.menus;
+package me.mortaldev.jbcrates.menus.edit;
 
+import java.math.BigDecimal;
+import java.util.Collections;
 import me.mortaldev.jbcrates.Main;
+import me.mortaldev.jbcrates.menus.MenuData;
+import me.mortaldev.jbcrates.menus.factories.ConfirmMenu;
 import me.mortaldev.jbcrates.modules.crate.Crate;
+import me.mortaldev.jbcrates.modules.crate.CrateHandler;
+import me.mortaldev.jbcrates.modules.crate.CrateItem;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
-import me.mortaldev.jbcrates.modules.menu.InventoryButton;
-import me.mortaldev.jbcrates.modules.menu.InventoryGUI;
+import me.mortaldev.jbcrates.records.Pair;
 import me.mortaldev.jbcrates.utils.ItemStackHelper;
 import me.mortaldev.jbcrates.utils.NBTAPI;
 import me.mortaldev.jbcrates.utils.TextUtil;
+import me.mortaldev.menuapi.GUIManager;
+import me.mortaldev.menuapi.InventoryButton;
+import me.mortaldev.menuapi.InventoryGUI;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,18 +23,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Collections;
-import java.util.Map;
-
 public class MoreOptionsRewardMenu extends InventoryGUI {
 
-  private static final String COMMAND_REWARD_KEY = "commandReward";
+  public static final String COMMAND_REWARD_KEY = "commandReward";
   private final Crate crate;
-  private Map.Entry<ItemStack, Double> rewardEntry;
+  private final Pair<CrateItem, BigDecimal> reward;
+  private final MenuData menuData;
 
-  public MoreOptionsRewardMenu(Crate crate, Map.Entry<ItemStack, Double> rewardEntry) {
+  public MoreOptionsRewardMenu(Crate crate, Pair<CrateItem, BigDecimal> reward, MenuData menuData) {
     this.crate = crate;
-    this.rewardEntry = rewardEntry;
+    this.reward = reward;
+    this.menuData = menuData;
   }
 
   @Override
@@ -39,15 +46,11 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
     addButton(18, backButton());
 
     ItemStack rewardItemStack =
-        CrateManager.generateDisplayRewardItemStack(
-            rewardEntry.getKey(),
-            rewardEntry.getValue(),
-            crate.getRewardDisplay(rewardEntry.getKey()));
-
+        CrateHandler.getInstance().generateDisplayRewardItemStack(reward.first(), reward.second());
     this.getInventory().setItem(13, rewardItemStack);
 
     addButton(16, removeButton());
-    if (NBTAPI.hasNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY)) {
+    if (NBTAPI.hasNBT(reward.first().getItemStack(), COMMAND_REWARD_KEY)) {
       addButton(10, commandItemButton());
     } else {
       addButton(10, normalItemButton());
@@ -75,9 +78,13 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
   }
 
   private void enterRewardCommand(Player player) {
-    String cmd = NBTAPI.getNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY) != null ? NBTAPI.getNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY) : "";
-    ItemStackHelper.Builder rewardItem = ItemStackHelper.builder(Material.CONDUIT)
-        .name(cmd);
+    CrateItem crateItem = reward.first();
+    ItemStack itemStack = crateItem.getItemStack();
+    String cmd =
+        NBTAPI.getNBT(itemStack, COMMAND_REWARD_KEY) != null
+            ? NBTAPI.getNBT(itemStack, COMMAND_REWARD_KEY)
+            : "";
+    ItemStackHelper.Builder rewardItem = ItemStackHelper.builder(Material.CONDUIT).name(cmd);
     new AnvilGUI.Builder()
         .plugin(Main.getInstance())
         .title("Reward Command: ")
@@ -86,28 +93,50 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
             (slot, stateSnapshot) -> {
               if (slot == 2) {
                 String textEntry = stateSnapshot.getText();
-                ItemStack clonedItem = rewardEntry.getKey().clone();
+                ItemStack clonedItem = itemStack.clone();
                 clonedItem.setAmount(1);
                 NBTAPI.addNBT(clonedItem, COMMAND_REWARD_KEY, textEntry);
-
-                crate.updateReward(rewardEntry.getKey(), clonedItem);
-                CrateManager.updateCrate(crate.getId(), crate);
-
-                rewardEntry = Map.entry(clonedItem, rewardEntry.getValue());
-
-                Main.getGuiManager().openGUI(new MoreOptionsRewardMenu(crate, rewardEntry), player);
+                CrateItem clonedCrateItem = updateCrateItem(crateItem, clonedItem);
+                CrateManager.getInstance().update(crate);
+                GUIManager.getInstance()
+                    .openGUI(
+                        new MoreOptionsRewardMenu(
+                            crate, new Pair<>(clonedCrateItem, reward.second()), menuData),
+                        player);
               }
               return Collections.emptyList();
             })
         .open(player);
   }
 
+  public CrateItem updateCrateItem(CrateItem originalCrateItem, ItemStack itemStack) {
+    CrateItem clonedCrateItem = originalCrateItem.clone();
+    clonedCrateItem.setItemStack(itemStack);
+
+    int i = crate.getDisplaySet().indexOf(originalCrateItem);
+    crate.getDisplaySet().set(i, clonedCrateItem);
+
+    crate.getRewardsMap().updateKey(originalCrateItem, clonedCrateItem);
+    crate.modify();
+    return clonedCrateItem;
+  }
+
+  public void removeCrateItem(CrateItem crateItem) {
+    crate.getDisplaySet().remove(crateItem);
+    crate.getRewardsMap().remove(crateItem, true);
+    crate.modify();
+  }
+
   private InventoryButton commandItemButton() {
+    CrateItem crateItem = reward.first();
+    ItemStack itemStack = crateItem.getItemStack();
     return new InventoryButton()
         .creator(
             player -> {
-              String commandReward = NBTAPI.getNBT(rewardEntry.getKey(), COMMAND_REWARD_KEY);
-              if (!commandReward.startsWith("/")) {
+              String commandReward = NBTAPI.getNBT(itemStack, COMMAND_REWARD_KEY);
+              if (commandReward == null) {
+                commandReward = "/";
+              } else if (!commandReward.startsWith("/")) {
                 commandReward = "/" + commandReward;
               }
               return ItemStackHelper.builder(Material.CONDUIT)
@@ -125,13 +154,15 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
               Player player = (Player) event.getWhoClicked();
               if (event.isRightClick()) {
 
-                ItemStack clonedItem = rewardEntry.getKey().clone();
+                ItemStack clonedItem = itemStack.clone();
                 NBTAPI.removeNBT(clonedItem, COMMAND_REWARD_KEY);
-                crate.updateReward(rewardEntry.getKey(), clonedItem);
-
-                rewardEntry = Map.entry(clonedItem, rewardEntry.getValue());
-
-                Main.getGuiManager().openGUI(new MoreOptionsRewardMenu(crate, rewardEntry), player);
+                CrateItem clonedCrateItem = updateCrateItem(crateItem, clonedItem);
+                CrateManager.getInstance().update(crate);
+                GUIManager.getInstance()
+                    .openGUI(
+                        new MoreOptionsRewardMenu(
+                            crate, new Pair<>(clonedCrateItem, reward.second()), menuData),
+                        player);
               } else if (event.isLeftClick()) {
                 enterRewardCommand(player);
               }
@@ -149,7 +180,7 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new CrateRewardsMenu(crate, crate.getOrder()), player);
+              GUIManager.getInstance().openGUI(new CrateRewardsMenu(crate, menuData), player);
             });
   }
 
@@ -161,12 +192,24 @@ public class MoreOptionsRewardMenu extends InventoryGUI {
                     .name("&c&lRemove")
                     .addLore("&7Removes this reward from the crate.")
                     .addLore("&7")
-                    .addLore("&e[Click to remove")
+                    .addLore("&e[Click to remove]")
                     .build())
         .consumer(
             event -> {
               Player player = (Player) event.getWhoClicked();
-              Main.getGuiManager().openGUI(new RemoveCrateRewardMenu(crate, rewardEntry), player);
+              ConfirmMenu confirmMenu =
+                  new ConfirmMenu(
+                      "&cRemove Reward?",
+                      reward.first().getItemStack().clone(),
+                      (player1) -> {
+                        removeCrateItem(reward.first());
+                        CrateManager.getInstance().update(crate);
+                        GUIManager.getInstance()
+                            .openGUI(new CrateRewardsMenu(crate, menuData), player);
+                      },
+                      (player1) -> GUIManager.getInstance()
+                          .openGUI(new MoreOptionsRewardMenu(crate, reward, menuData), player));
+              GUIManager.getInstance().openGUI(confirmMenu, player);
             });
   }
 }

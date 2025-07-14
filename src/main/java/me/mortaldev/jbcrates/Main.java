@@ -3,20 +3,17 @@ package me.mortaldev.jbcrates;
 import co.aikar.commands.PaperCommandManager;
 import java.util.*;
 import java.util.stream.Collectors;
+import me.mortaldev.crudapi.loading.CRUDRegistry;
 import me.mortaldev.jbcrates.commands.GetCrateRewardsCommand;
 import me.mortaldev.jbcrates.commands.JBCrateCommand;
 import me.mortaldev.jbcrates.configs.MainConfig;
+import me.mortaldev.jbcrates.listeners.ChatListener;
 import me.mortaldev.jbcrates.listeners.OnCratePlaceEvent;
-import me.mortaldev.jbcrates.listeners.OnJoinRewardsReminderEvent;
-import me.mortaldev.jbcrates.listeners.OnPlayerQuitEvent;
-import me.mortaldev.jbcrates.menus.CrateRewardsMenu;
-import me.mortaldev.jbcrates.menus.ManageCrateMenu;
-import me.mortaldev.jbcrates.menus.ViewCratesMenu;
+import me.mortaldev.jbcrates.modules.CrateDataMigrator;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
-import me.mortaldev.jbcrates.modules.menu.GUIListener;
-import me.mortaldev.jbcrates.modules.menu.GUIManager;
-import me.mortaldev.jbcrates.modules.profile.CrateProfileManager;
+import me.mortaldev.menuapi.GUIListener;
+import me.mortaldev.menuapi.GUIManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,15 +23,9 @@ public final class Main extends JavaPlugin {
 
   private static final String LABEL = "JBCrates";
   public static Main instance;
-  public static GUIManager guiManager;
-  public static MainConfig mainConfig;
   static PaperCommandManager commandManager;
   //  static HashSet<String> dependencies = new HashSet<>();
   static List<Location> crateLocationList = new ArrayList<>();
-
-  public static MainConfig getMainConfig() {
-    return mainConfig;
-  }
 
   public static Main getInstance() {
     return instance;
@@ -42,10 +33,6 @@ public final class Main extends JavaPlugin {
 
   public static String getLabel() {
     return LABEL;
-  }
-
-  public static GUIManager getGuiManager() {
-    return guiManager;
   }
 
   public static void log(String message) {
@@ -71,37 +58,26 @@ public final class Main extends JavaPlugin {
       getDataFolder().mkdir();
     }
 
-    // Configs (must be first since a lot of things rely on the config)
+    // Configs
+    MainConfig.getInstance().load();
 
-    mainConfig = new MainConfig();
+    CrateDataMigrator.runMigration();
 
-    CrateProfileManager.loadCrateProfileMap();
-    CrateManager.updateCratesList();
-
-    // DEPENDENCIES
-
-    //    for (String plugin : dependencies) {
-    //      if (Bukkit.getPluginManager().getPlugin(plugin) == null) {
-    //        getLogger().warning("Could not find " + plugin + "! This plugin is required.");
-    //        Bukkit.getPluginManager().disablePlugin(this);
-    //        return;
-    //      }
-    //    }
+    // Managers
+    CRUDRegistry.getInstance()
+        .scanAndRegister(
+            this.getClass().getClassLoader(),
+            "me.mortaldev.jbcrates"); // example: me.mortaldev.jbjuly4th
+    CRUDRegistry.getInstance().initialize();
 
     // GUI Manager
-    guiManager = new GUIManager();
-    GUIListener guiListener = new GUIListener(guiManager);
+    GUIListener guiListener = new GUIListener(GUIManager.getInstance()); // MenuAPI
     Bukkit.getPluginManager().registerEvents(guiListener, this);
 
     // Listeners/Events
 
     Bukkit.getPluginManager().registerEvents(new OnCratePlaceEvent(), this);
-    Bukkit.getPluginManager().registerEvents(new OnJoinRewardsReminderEvent(), this);
-    Bukkit.getPluginManager().registerEvents(new OnPlayerQuitEvent(), this);
-
-    Bukkit.getPluginManager().registerEvents(new ViewCratesMenu.AddCratePromptEvent(), this);
-    Bukkit.getPluginManager().registerEvents(new ManageCrateMenu.SetCrateNamePromptEvent(), this);
-    Bukkit.getPluginManager().registerEvents(new CrateRewardsMenu.SetRewardNamePrompt(), this);
+    Bukkit.getPluginManager().registerEvents(new ChatListener(), this);
 
     // Commands
 
@@ -109,7 +85,10 @@ public final class Main extends JavaPlugin {
         .getCommandCompletions()
         .registerCompletion(
             "crates",
-            c -> CrateManager.getCrates().stream().map(Crate::getId).collect(Collectors.toSet()));
+            c ->
+                CrateManager.getInstance().getSet().stream()
+                    .map(Crate::getId)
+                    .collect(Collectors.toSet()));
 
     commandManager.registerCommand(new JBCrateCommand());
     commandManager.registerCommand(new GetCrateRewardsCommand());
@@ -130,7 +109,5 @@ public final class Main extends JavaPlugin {
         }
       }
     }
-
-    CrateProfileManager.saveCrateProfileMap();
   }
 }

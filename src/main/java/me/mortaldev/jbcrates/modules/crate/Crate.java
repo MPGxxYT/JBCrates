@@ -1,257 +1,188 @@
 package me.mortaldev.jbcrates.modules.crate;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
+import java.util.*;
+import me.mortaldev.crudapi.CRUD;
+import me.mortaldev.jbcrates.modules.animation.Animation;
+import me.mortaldev.jbcrates.utils.ChanceMap;
 import me.mortaldev.jbcrates.utils.TextUtil;
-import me.mortaldev.jbcrates.utils.Utils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+public class Crate implements CRUD.Identifiable {
 
-public class Crate {
+  private final String id;
+  private String displayName;
+  private String description = "&7This is the default description.";
+  private final ChanceMap<CrateItem> rewardsMap;
+  private List<CrateItem> displaySet;
+  private Integer amountToWin = 1;
+  private CrateManager.SortBy sortBy = CrateManager.SortBy.CHANCE;
+  private CrateManager.Order order = CrateManager.Order.ASCENDING;
+  private Animation animation;
+  private final Long dateCreated;
+  private Long lastModified;
 
-  String id;
-  String displayName;
-  String description = "&7This is the default description.";
-  Map<String, Double> rewardsMap = new HashMap<>();
-  LinkedHashMap<String, String> rewardsDisplayMap = new LinkedHashMap<>();
-  Integer amountToWin = 1;
-  CrateManager.SortBy sortBy = CrateManager.SortBy.CHANCE;
-  CrateManager.Order order = CrateManager.Order.ASCENDING;
-
-  public Crate(String displayName) {
-    this(TextUtil.format(displayName));
+  @JsonCreator
+  public Crate(
+      @JsonProperty("id") String id,
+      @JsonProperty("rewardsMap") ChanceMap<CrateItem> rewardsMap,
+      @JsonProperty("dateCreated") Long dateCreated) {
+    this.id = id == null ? "CRATE_ID" : id;
+    this.rewardsMap = rewardsMap == null ? new ChanceMap<>() : rewardsMap;
+    this.dateCreated = dateCreated == null ? System.currentTimeMillis() : dateCreated;
+    this.lastModified = System.currentTimeMillis();
+    this.displaySet = new ArrayList<>();
+    this.animation = Animation.ORBIT;
   }
 
-  public Crate(Component displayName) {
-    this.displayName = TextUtil.serializeComponent(displayName);
-
-    String formattedName = CrateManager.stringToIDFormat(TextUtil.componentToString(displayName));
-    this.id = formattedName;
-
-    // Adds numbers to the ID if its taken already.
-    if (CrateManager.crateByIDExists(this.id)) {
-      int idCount = CrateManager.crateByIDCount(this.id);
-      this.id = formattedName + "_" + idCount;
-      while (CrateManager.crateByIDExists(this.id)) {
-        idCount++;
-        this.id = formattedName + "_" + idCount;
-      }
-    }
+  public static Crate create(String id) {
+    return new Crate(id, null, null);
   }
 
-  private Crate(
-      String id,
-      String displayName,
-      String description,
-      Map<String, Double> rewardsMap,
-      LinkedHashMap<String, String> rewardsDisplayMap,
-      Integer amountToWin, CrateManager.SortBy sortBy, CrateManager.Order order) {
-    this.displayName = displayName;
-    this.id = id;
-    this.description = description;
-    this.rewardsMap = rewardsMap;
-    this.rewardsDisplayMap = rewardsDisplayMap;
-    this.amountToWin = amountToWin;
-    this.sortBy = sortBy;
-    this.order = order;
-  }
-
-  public Crate clone() {
-    return new Crate(id, displayName, description, rewardsMap, rewardsDisplayMap, amountToWin, sortBy, order);
-  }
-
-  public CrateManager.SortBy getSortBy() {
-    if (sortBy == null) {
-      return CrateManager.SortBy.CHANCE;
-    }
-    return sortBy;
-  }
-
-  public void setSortBy(CrateManager.SortBy sortBy) {
-    this.sortBy = sortBy;
-  }
-
-  public CrateManager.Order getOrder() {
-    if (order == null) {
-      return CrateManager.Order.ASCENDING;
-    }
-    return order;
-  }
-
-  public void setOrder(CrateManager.Order order) {
-    this.order = order;
-  }
-
+  @Override
+  @JsonProperty("id")
   public String getId() {
     return id;
   }
 
-  public Component getDisplayName() {
-    return TextUtil.deserializeComponent(displayName);
+  public Long getDateCreated() {
+    return dateCreated;
   }
 
-  public String getDescription() {
-    return description;
+  public Long getLastModified() {
+    return lastModified;
   }
 
-  public Integer getAmountToWin() {
-    return amountToWin;
+  public void setLastModified(Long lastModified) {
+    this.lastModified = lastModified;
   }
 
-  public Map<ItemStack, Double> getRewardsMap() {
-    Map<ItemStack, Double> convertedMap = new HashMap<>();
-    rewardsMap.forEach((key, value) -> convertedMap.put(decodeItemStack(key), value));
-    return convertedMap;
+  public void modify() {
+    setLastModified(System.currentTimeMillis());
   }
 
-  public LinkedHashMap<ItemStack, Component> getRewardsDisplayMap() {
-    LinkedHashMap<ItemStack, Component> convertedMap = new LinkedHashMap<>();
-    for (Map.Entry<String, String> entry : rewardsDisplayMap.entrySet()) {
-      Component display;
-      ItemStack itemStack = decodeItemStack(entry.getKey());
-      if (entry.getValue() == null) {
-        display = fixRewardDisplay(itemStack);
-      } else {
-        display = TextUtil.deserializeComponent(entry.getValue());
-      }
-      convertedMap.put(itemStack, display);
-    }
-    return convertedMap;
+  public List<CrateItem> getDisplaySet() {
+    return displaySet;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setDisplaySet(List<CrateItem> displaySet) {
+    this.displaySet = displaySet;
   }
 
-  public void setDisplayName(String name) {
-    this.displayName = TextUtil.serializeComponent(name);
+  public Animation getAnimation() {
+    return animation;
   }
 
-  public void setDisplayName(Component name) {
-    this.displayName = TextUtil.serializeComponent(name);
+  public void setAnimation(Animation animation) {
+    this.animation = animation;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   public void setDescription(String description) {
     this.description = description;
   }
 
-  public void setRewardsMap(Map<ItemStack, Double> rewardsMap) {
-    this.rewardsMap.clear();
-    rewardsMap.forEach((key, value) -> this.rewardsMap.put(encodeItemStack(key), value));
-  }
-
-  public void setRewardsDisplayMap(LinkedHashMap<ItemStack, Component> rewardsDisplayMap) {
-    this.rewardsDisplayMap.clear();
-    rewardsDisplayMap.forEach((key, value) ->
-        this.rewardsDisplayMap.put(
-            encodeItemStack(key), TextUtil.serializeComponent(value)));
-  }
-
   public void setAmountToWin(Integer amountToWin) {
     this.amountToWin = amountToWin;
   }
 
-  String encodeItemStack(ItemStack itemStack) {
-    byte[] itemStackAsBytes = itemStack.serializeAsBytes();
-    return Base64.getEncoder().encodeToString(itemStackAsBytes);
+  public void setSortBy(CrateManager.SortBy sortBy) {
+    this.sortBy = sortBy;
   }
 
-  ItemStack decodeItemStack(String string) {
-    byte[] bytes = Base64.getDecoder().decode(string);
-    return ItemStack.deserializeBytes(bytes);
+  public void setOrder(CrateManager.Order order) {
+    this.order = order;
   }
 
-  public void addReward(ItemStack reward, Double probability) {
-    Component displayName = TextUtil.format("&f" + Utils.itemName(reward.clone()));
-    if (reward.getItemMeta().hasDisplayName()) {
-      displayName = reward.getItemMeta().displayName();
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  @JsonIgnore
+  public String getCleanDisplayName() {
+    return TextUtil.removeDecorAndColor(displayName);
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public ChanceMap<CrateItem> getRewardsMap() {
+    return rewardsMap;
+  }
+
+  public Integer getAmountToWin() {
+    return amountToWin;
+  }
+
+  public CrateManager.SortBy getSortBy() {
+    return sortBy;
+  }
+
+  public CrateManager.Order getOrder() {
+    return order;
+  }
+
+  /**
+   * Creates a new Crate instance by migrating data from the old Crate structure. This is intended
+   * for a one-time data conversion process.
+   *
+   * @param oldCrate The instance of the old Crate class.
+   * @return A new, migrated Crate object.
+   */
+  public static Crate fromOldCrate(Crate_Old oldCrate) {
+    // 1. Create a new Crate object using its ID.
+    Crate newCrate = Crate.create(oldCrate.getId());
+
+    // 2. Copy over all the simple, direct-mapping fields.
+    newCrate.setDisplayName(TextUtil.deformat(oldCrate.getDisplayName()));
+    newCrate.setDescription(oldCrate.getDescription());
+    newCrate.setAmountToWin(oldCrate.getAmountToWin());
+    newCrate.setSortBy(oldCrate.getSortBy());
+    newCrate.setOrder(oldCrate.getOrder());
+    newCrate.setLastModified(System.currentTimeMillis()); // Set modification time
+
+    // The old crate didn't have an animation, so we'll set a default.
+    newCrate.setAnimation(Animation.ORBIT);
+
+    // 3. Migrate the complex rewards structure.
+    ChanceMap<CrateItem> newRewardsMap = newCrate.getRewardsMap();
+    List<CrateItem> newDisplaySet = new ArrayList<>();
+
+    // Get the old data. getRewardsDisplayMap is the source of truth for items and their names.
+    LinkedHashMap<ItemStack, Component> oldRewardsWithDisplay = oldCrate.getRewardsDisplayMap();
+    Map<ItemStack, Double> oldRewardsWithChance = oldCrate.getRewardsMap();
+
+    // 4. Iterate over the old rewards to convert them.
+    for (Map.Entry<ItemStack, Component> entry : oldRewardsWithDisplay.entrySet()) {
+      ItemStack itemStack = entry.getKey();
+      Component customDisplayName = entry.getValue();
+
+      // Find the corresponding chance. Default to 0.0 if not found.
+      Double chance = oldRewardsWithChance.getOrDefault(itemStack, 0.0);
+
+      // Create the new CrateItem.
+      CrateItem newCrateItem = new CrateItem(itemStack.clone());
+
+      // Overwrite the default display name with the custom one from the old crate.
+      newCrateItem.setDisplayText(TextUtil.deformat(customDisplayName));
+
+      // Add the fully configured CrateItem to the new structures.
+      newRewardsMap.put(
+          newCrateItem, BigDecimal.valueOf(chance), false); // Add without rebalancing each time
+      newDisplaySet.add(newCrateItem);
     }
 
-    addReward(reward, probability, displayName);
-  }
+    // 5. Set the populated list for the display set.
+    newCrate.setDisplaySet(newDisplaySet);
 
-  public Component getRewardDisplay(ItemStack itemStack) {
-    String encodedReward = encodeItemStack(itemStack);
-    String rewardDisplay = rewardsDisplayMap.get(encodedReward);
-    if (rewardDisplay == null) {
-      return fixRewardDisplay(itemStack);
-    }
-    return TextUtil.deserializeComponent(rewardDisplay);
-  }
-
-  public Double getRewardChance(ItemStack itemStack) {
-    String encodedReward = encodeItemStack(itemStack);
-    return rewardsMap.get(encodedReward);
-  }
-
-  public Map.Entry<ItemStack, Double> getRewardEntry(ItemStack itemStack) {
-    String encodedReward = encodeItemStack(itemStack);
-    Double v = rewardsMap.get(encodedReward);
-    return Map.entry(itemStack, v);
-  }
-
-  private Component fixRewardDisplay(ItemStack itemStack){
-    if (itemStack.getItemMeta().hasDisplayName()) {
-      Component component = itemStack.getItemMeta().displayName();
-      updateReward(itemStack, component);
-      return component;
-    }
-    Component component = TextUtil.format("&f" + Utils.itemName(itemStack.clone()));
-    updateReward(itemStack, component);
-    return component;
-  }
-
-  public void addReward(ItemStack reward, Double probability, Component display) {
-    String serializedDisplay = GsonComponentSerializer.gson().serialize(display);
-    String encodedItemStack = encodeItemStack(reward);
-    this.rewardsMap.put(encodedItemStack, probability);
-    this.rewardsDisplayMap.put(encodedItemStack, serializedDisplay);
-  }
-
-  public void removeReward(ItemStack reward) {
-    String encodedItemStack = encodeItemStack(reward);
-    if (this.rewardsMap.containsKey(encodedItemStack)) {
-      this.rewardsMap.remove(encodedItemStack);
-      this.rewardsDisplayMap.remove(encodedItemStack);
-    }
-  }
-
-  public void updateReward(ItemStack reward, ItemStack replacement) {
-    String encodedReward = encodeItemStack(reward);
-    String encodedReplacement = encodeItemStack(replacement);
-
-    Double v = this.rewardsMap.get(encodedReward);
-    String string = this.rewardsDisplayMap.get(encodedReward);
-
-    this.rewardsMap.remove(encodedReward);
-    this.rewardsDisplayMap.remove(encodedReward);
-
-    this.rewardsMap.put(encodedReplacement, v);
-    this.rewardsDisplayMap.put(encodedReplacement, string);
-  }
-
-  public void updateReward(ItemStack reward, Double newProbability) {
-    Component displayName = TextUtil.format("&f" + Utils.itemName(reward.clone()));
-    if (reward.getItemMeta().hasDisplayName()) {
-      displayName = reward.getItemMeta().displayName();
-    }
-    updateReward(reward, newProbability, displayName);
-  }
-
-  public void updateReward(ItemStack reward, Double newProbability, Component display) {
-    String encodedItemStack = encodeItemStack(reward);
-    if (this.rewardsMap.containsKey(encodedItemStack)) {
-      this.rewardsMap.put(encodedItemStack, newProbability);
-      this.rewardsDisplayMap.put(encodedItemStack, TextUtil.serializeComponent(display));
-    }
-  }
-
-  public void updateReward(ItemStack reward, Component display) {
-    String encodedItemStack = encodeItemStack(reward);
-    updateReward(reward, rewardsMap.get(encodedItemStack), display);
+    return newCrate;
   }
 }
