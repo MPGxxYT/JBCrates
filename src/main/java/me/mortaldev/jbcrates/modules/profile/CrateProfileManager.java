@@ -1,88 +1,72 @@
 package me.mortaldev.jbcrates.modules.profile;
 
-import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import me.mortaldev.crudapi.CRUD;
+import me.mortaldev.crudapi.CRUDManager;
+import me.mortaldev.jbcrates.Main;
+import me.mortaldev.jbcrates.menus.edit.MoreOptionsRewardMenu;
+import me.mortaldev.jbcrates.utils.NBTAPI;
+import me.mortaldev.jbcrates.utils.TextUtil;
+import me.mortaldev.jbcrates.utils.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public class CrateProfileManager {
-
-  static Map<UUID, CrateProfile> crateProfileList;
-  static List<UUID> crateActiveList = new ArrayList<>();
-  static List<UUID> wasOfflineList = new ArrayList<>();
-
-  public static List<UUID> getWasOfflineList() {
-    return wasOfflineList;
-  }
-  public static void clearWasOfflineList() {
-    wasOfflineList.clear();
-  }
-  public static void addToWasOfflineList(UUID uuid){
-    wasOfflineList.add(uuid);
-  }
-  public static void removeFromWasOfflineList(UUID uuid){
-    wasOfflineList.remove(uuid);
+public class CrateProfileManager extends CRUDManager<CrateProfile> {
+  private static class Singleton {
+    private static final CrateProfileManager INSTANCE = new CrateProfileManager();
   }
 
-  public static List<UUID> getCrateActiveList() {
-    return crateActiveList;
-  }
-  public static void clearCrateActiveList() {
-    crateActiveList.clear();
-  }
-  public static void addToCrateActiveList(UUID uuid){
-    crateActiveList.add(uuid);
-  }
-  public static void removeFromCrateActiveList(UUID uuid){
-    crateActiveList.remove(uuid);
+  public static CrateProfileManager getInstance() {
+    return Singleton.INSTANCE;
   }
 
-  public static void loadCrateProfileMap() {
-    crateProfileList = new HashMap<>();
-    File mainPath = new File(CrateProfileCRUD.getMainFilePath());
-    if (!mainPath.exists()) {
+  private CrateProfileManager() {}
+
+  @Override
+  public CRUD<CrateProfile> getCRUD() {
+    return CrateProfileCRUD.getInstance();
+  }
+
+  @Override
+  public void log(String string) {
+    Main.log(string);
+  }
+
+  public void giveItems(ItemStack[] itemStacks, OfflinePlayer offlinePlayer) {
+    CrateProfile crateProfile =
+        getByID(offlinePlayer.getUniqueId().toString())
+            .orElse(CrateProfile.create(offlinePlayer.getUniqueId().toString()));
+    Player player = offlinePlayer.getPlayer();
+    if (player == null || !offlinePlayer.isOnline()) {
+      Arrays.stream(itemStacks).forEach(crateProfile::addItem);
       return;
     }
-    File[] files = mainPath.listFiles();
-    if (files != null) {
-      for (File file : files) {
-        UUID uuid = UUID.fromString(file.getName().replace(".json", ""));
-        CrateProfile crateProfile = CrateProfileCRUD.getProfile(uuid);
-        crateProfileList.put(uuid, crateProfile);
-        CrateProfileCRUD.deleteProfile(uuid);
+    boolean failedToFit = false;
+    player.sendMessage(TextUtil.format("&3You have received your crate rewards!"));
+    for (ItemStack itemStack : itemStacks) {
+      if (NBTAPI.hasNBT(itemStack, MoreOptionsRewardMenu.COMMAND_REWARD_KEY)) {
+        String command = NBTAPI.getNBT(itemStack, MoreOptionsRewardMenu.COMMAND_REWARD_KEY);
+        if (command == null) {
+          continue;
+        }
+        command = command.replaceAll("%player%", player.getName());
+        command = command.replaceFirst("/", "");
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        continue;
+      }
+      if (!Utils.canInventoryHold(player.getInventory(), itemStack)) {
+        failedToFit = true;
+        crateProfile.addItem(itemStack);
+      } else {
+        player.getInventory().addItem(itemStack);
       }
     }
-  }
-
-  public static void saveCrateProfileMap() {
-    if (crateProfileList != null) {
-      for (Map.Entry<UUID, CrateProfile> entry : crateProfileList.entrySet()) {
-        CrateProfileCRUD.saveProfile(entry.getValue());
-      }
+    if (failedToFit) {
+      update(crateProfile, true);
+      player.sendMessage(TextUtil.format("&cFailed to fit all items in inventory."));
+      player.sendMessage(TextUtil.format("&cUse /getCrateRewards to claim your rewards."));
     }
-  }
-
-  public static CrateProfile getCrateProfile(UUID uuid){
-    if (!crateProfileList.containsKey(uuid)) {
-      CrateProfile crateProfile = new CrateProfile(uuid);
-      addCrateProfile(crateProfile);
-      return crateProfile;
-    }
-    return crateProfileList.get(uuid);
-  }
-  public static boolean hasCrateProfile(UUID uuid){
-    return crateProfileList.containsKey(uuid);
-  }
-
-  public static void addCrateProfile(CrateProfile crateProfile) {
-    crateProfileList.put(crateProfile.getUuid(), crateProfile);
-  }
-  public static void removeCrateProfile(UUID uuid){
-    crateProfileList.remove(uuid);
-  }
-  public static void removeCrateProfile(CrateProfile crateProfile){
-    crateProfileList.remove(crateProfile.getUuid());
-  }
-  public static void updateCrateProfile(CrateProfile crateProfile){
-    removeCrateProfile(crateProfile);
-    addCrateProfile(crateProfile);
   }
 }

@@ -1,43 +1,70 @@
 package me.mortaldev.jbcrates.configs;
 
-import me.mortaldev.jbcrates.utils.YamlConfig;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-
 import java.util.HashMap;
 import java.util.Map;
+import me.mortaldev.AbstractConfig;
+import me.mortaldev.ConfigValue;
+import me.mortaldev.jbcrates.Main;
+import org.bukkit.plugin.java.JavaPlugin;
 
-public class MainConfig {
-  private Long crateCooldown;
-  private Map<String, Double> worldWhitelistMap;
-  FileConfiguration config;
-
-  public MainConfig() {
-    reload();
+public class MainConfig extends AbstractConfig {
+  private static class Singleton {
+    private static final MainConfig INSTANCE = new MainConfig();
   }
 
-  public String reload(){
-    config = YamlConfig.getConfig("config");
-    crateCooldown = config.getLong("crateCooldown");
-    ConfigurationSection section = config.getConfigurationSection("worldWhitelist");
-    if (section == null) {
-      return YamlConfig.failedToLoad("main", "worldWhitelist");
-    }
-    Map<String, Object> values = section.getValues(false);
-    worldWhitelistMap = new HashMap<>();
-    values.forEach((string, object) -> worldWhitelistMap.put(string, Double.valueOf(object.toString())));
-    return "Reloaded config!";
+  public static MainConfig getInstance() {
+    return Singleton.INSTANCE;
   }
 
-  public Long getCrateCooldown() {
-    return crateCooldown;
+  private MainConfig() {}
+
+  private final ConfigValue<Integer> crateCooldown = new ConfigValue<>("crateCooldown", 20000);
+  private final ConfigValue<Map<String, Integer>> worldWhitelist =
+      new ConfigValue<>(
+          "worldWhitelist",
+          new HashMap<>() {
+            {
+              put("world", 125);
+            }
+          });
+  private final ConfigValue<Boolean> migrated = new ConfigValue<>("migrated", false);
+
+  @Override
+  public void log(String message) {
+    Main.log(message);
   }
 
-  public Map<String, Double> getWorldWhitelistMap() {
-    return worldWhitelistMap;
+  @Override
+  public String getName() {
+    return "config";
   }
 
-  public FileConfiguration getConfig() {
-    return config;
+  @Override
+  public JavaPlugin getMain() {
+    return Main.getInstance();
+  }
+
+  @Override
+  public void loadData() {
+    crateCooldown.setValue(getConfigValue(crateCooldown).getValue());
+    worldWhitelist.setValue(getConfigValue(worldWhitelist).getValue());
+    migrated.setValue(getConfigValue(migrated).getValue());
+  }
+
+  public boolean isMigrated() {
+    return migrated.getValue();
+  }
+
+  public void setMigrated(boolean bool) {
+    migrated.setValue(bool);
+    saveValue(migrated);
+  }
+
+  public Integer getCrateCooldown() {
+    return crateCooldown.getValue();
+  }
+
+  public Map<String, Integer> getWorldWhitelist() {
+    return worldWhitelist.getValue();
   }
 }

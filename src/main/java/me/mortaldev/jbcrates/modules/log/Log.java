@@ -29,14 +29,16 @@ public class Log {
     return dateTime;
   }
 
-  public String formFileLog(){
+  public String formFileLog() {
     String time = dateTime.format(DateTimeFormatter.ofPattern(LOG_TIME_FORMAT));
     return MessageFormat.format(FILE_LOG_FORMAT, time, status, sender, receiver, crateID);
   }
-  public String formConsoleLog(){
+
+  public String formConsoleLog() {
     return MessageFormat.format(CONSOLE_LOG_FORMAT, status, sender, receiver, crateID);
   }
-  public String formChatLog(){
+
+  public String formChatLog() {
     return MessageFormat.format(CHAT_LOG_FORMAT, status.getDisplay(), sender, receiver, crateID);
   }
 
