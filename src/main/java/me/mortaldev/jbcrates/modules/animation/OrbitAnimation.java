@@ -193,7 +193,7 @@ public class OrbitAnimation implements IAnimation {
             itemDisplay.setTransformation(transformation);
 
             itemDisplay.customName(
-                TextUtil.format(crateItem.getDisplayText() + " x" + itemStack.getAmount()));
+                TextUtil.format(crateItem.getDisplayText() + "&7 x" + itemStack.getAmount()));
             itemDisplay.setCustomNameVisible(true);
 
             itemDisplay
