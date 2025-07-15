@@ -45,10 +45,10 @@ public class CrateHandler {
           ItemStack itemStack = crateItem.getItemStack();
           String displayName = crateItem.getDisplayText();
           if (displayMode) {
-            rewardsText.add("&7 - " + displayName + "&7 x" + itemStack.getAmount());
+            rewardsText.add("&7 - " + displayName + "&r&7 x" + itemStack.getAmount());
           } else {
             rewardsText.add(
-                "&7" + displayName + "&7 x" + itemStack.getAmount() + " &3" + chance + "% Chance");
+                "&7" + displayName + "&r&7 x" + itemStack.getAmount() + " &3" + chance + "% Chance");
           }
         } else {
           break;
