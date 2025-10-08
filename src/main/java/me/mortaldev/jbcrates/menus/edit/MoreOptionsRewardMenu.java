@@ -3,7 +3,7 @@ package me.mortaldev.jbcrates.menus.edit;
 import java.math.BigDecimal;
 import java.util.Collections;
 import me.mortaldev.jbcrates.Main;
-import me.mortaldev.jbcrates.menus.MenuData;
+import me.mortaldev.jbcrates.menus.basicmenu.MenuData;
 import me.mortaldev.jbcrates.menus.factories.ConfirmMenu;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateHandler;

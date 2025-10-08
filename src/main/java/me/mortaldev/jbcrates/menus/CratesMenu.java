@@ -1,12 +1,15 @@
 package me.mortaldev.jbcrates.menus;
 
 import java.util.Comparator;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+
+import me.mortaldev.jbcrates.menus.basicmenu.BasicMenu;
+import me.mortaldev.jbcrates.menus.basicmenu.EnumFilter;
+import me.mortaldev.jbcrates.menus.basicmenu.MenuData;
+import me.mortaldev.jbcrates.menus.basicmenu.OrderOption;
 import me.mortaldev.jbcrates.menus.edit.ManageCrateMenu;
-import me.mortaldev.jbcrates.menus.factories.BasicMenu;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateHandler;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
@@ -16,7 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class CratesMenu extends BasicMenu<Crate> {
+public class CratesMenu extends BasicMenu<Crate> implements BasicMenu.Identifiable {
 
   public CratesMenu(MenuData menuData) {
     super(menuData, CrateManager.getInstance().getSet());
@@ -38,6 +41,11 @@ public class CratesMenu extends BasicMenu<Crate> {
   }
 
   @Override
+  public boolean hasCreateButton() {
+    return true;
+  }
+
+  @Override
   public Runnable createNewData(String textEntry, InventoryClickEvent event, MenuData menuData) {
     return () -> {
       Player player = (Player) event.getWhoClicked();
@@ -53,16 +61,10 @@ public class CratesMenu extends BasicMenu<Crate> {
                 Crate crate = Crate.create(textEntry);
                 crate.setDisplayName(textEntry);
                 CrateManager.getInstance().add(crate);
-                menuData.setOrder(MenuData.Order.LAST_MODIFIED);
                 menuData.setDirection(MenuData.Direction.DESCENDING);
                 GUIManager.getInstance().openGUI(new ManageCrateMenu(crate, menuData), player);
               });
     };
-  }
-
-  @Override
-  public boolean hasCreateButton() {
-    return true;
   }
 
   @Override
@@ -84,28 +86,25 @@ public class CratesMenu extends BasicMenu<Crate> {
   }
 
   @Override
-  public Enum<? extends IDisplayName>[] getOrderOptions() {
-    return MenuData.Order.values();
+  public List<OrderOption<Crate>> getOrderOptions() {
+    return List.of(
+        new OrderOption<>(
+            "alphabetical",
+            "Alphabetical",
+            Comparator.comparing(Crate::getId, String.CASE_INSENSITIVE_ORDER)),
+        new OrderOption<>(
+            "date_created", "Date Created", Comparator.comparing(Crate::getDateCreated).reversed()),
+        new OrderOption<>(
+            "last_modified", "Last Modified", Comparator.comparing(Crate::getLastModified).reversed()));
   }
 
   @Override
-  public LinkedHashSet<Crate> applyOrder(Set<Crate> data, MenuData menuData) {
-    if (menuData.getOrder() instanceof MenuData.Order order) {
-      return switch (order) {
-        case ALPHABET ->
-            data.stream()
-                .sorted(Comparator.comparing(Crate::getId, String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        case DATE_CREATED ->
-            data.stream()
-                .sorted(Comparator.comparing(Crate::getDateCreated))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        case LAST_MODIFIED ->
-            data.stream()
-                .sorted(Comparator.comparing(Crate::getLastModified))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-      };
-    }
-    return new LinkedHashSet<>(data);
+  public List<EnumFilter<Crate, ?>> getEnumFilters() {
+    return List.of();
+  }
+
+  @Override
+  public String getId() {
+    return "crates_menu";
   }
 }

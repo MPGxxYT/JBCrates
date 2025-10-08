@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.listeners.ChatListener;
-import me.mortaldev.jbcrates.menus.MenuData;
+import me.mortaldev.jbcrates.menus.basicmenu.MenuData;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateHandler;
 import me.mortaldev.jbcrates.modules.crate.CrateItem;

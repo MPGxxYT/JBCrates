@@ -4,7 +4,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import me.mortaldev.jbcrates.configs.MainConfig;
 import me.mortaldev.jbcrates.menus.CratesMenu;
-import me.mortaldev.jbcrates.menus.MenuData;
+import me.mortaldev.jbcrates.menus.basicmenu.MenuData;
 import me.mortaldev.jbcrates.modules.crate.CrateHandler;
 import me.mortaldev.jbcrates.modules.crate.CrateManager;
 import me.mortaldev.jbcrates.modules.log.Log;

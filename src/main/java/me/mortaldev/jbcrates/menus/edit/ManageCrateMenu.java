@@ -3,7 +3,7 @@ package me.mortaldev.jbcrates.menus.edit;
 import me.mortaldev.jbcrates.Main;
 import me.mortaldev.jbcrates.listeners.ChatListener;
 import me.mortaldev.jbcrates.menus.CratesMenu;
-import me.mortaldev.jbcrates.menus.MenuData;
+import me.mortaldev.jbcrates.menus.basicmenu.MenuData;
 import me.mortaldev.jbcrates.menus.factories.ConfirmMenu;
 import me.mortaldev.jbcrates.modules.crate.Crate;
 import me.mortaldev.jbcrates.modules.crate.CrateHandler;

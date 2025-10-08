@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import me.mortaldev.jbcrates.Main;
 
 /**
- * v1.0.1
+ * v1.0.2
  *
  * <p>A map-like data structure that associates keys with BigDecimal chances (weights). It provides
  * methods for rolling items based on their chances and for balancing the chances so they sum up to
